@@ -1,0 +1,130 @@
+{
+  "stores": {
+    "description": "Each row represents a unique point of sale location.",
+    "columns": {
+      "id": {
+        "description": "Primary key"
+      },
+      "opening_date": {
+        "description": "Date when the store was opened for the first time"
+      },
+      "location": {
+        "description": "NUTS3, name of the locality"
+      },
+      "state": {
+        "description": "NUTS 1 (federal state, województwa, etc.)"
+      },
+      "urbanization": {
+        "description": "DEGURBA"
+      },
+      "sco_introduction": {
+        "description": "Date when self-checkout terminals became operational"
+      }
+    }
+  },
+  "products": {
+    "description": "Each row represents a unique article.",
+    "columns": {
+      "id": {
+        "description": "Primary key; SKU of the article"
+      },
+      "base_product_id": {
+        "description": "Foreign key references products; SKU of the original article when size, price, or similar attributes of an article change."
+      },
+      "category": {
+        "description": "Commodity group"
+      },
+      "price": {
+        "description": "Nominal price most customers pay for this product in EUR per piece or EUR per kg"
+      },
+      "popularity": {
+        "description": "Ana: Likelihood ratio of an average customer choosing this article over the average article in this category."
+      },
+      "valid_from": {
+        "description": "First day on which the product is available in the POS system"
+      },
+      "valid_to": {
+        "description": "Last day on which the product is available in the POS system"
+      },
+      "sold_by_weight": {
+        "description": "Determines whether article price is in EUR per piece or EUR per kg"
+      },
+      "weight": {
+        "description": "Average weight of the product in kg. Partly crawled data, might be inaccurate."
+      },
+      "age_restricted": {
+        "description": "Cashier has to confirm that customer is not a minor."
+      }
+    }
+  },
+  "transactions": {
+    "description": "Each row represents a single receipt for one customer basket. Contains all data specific to the entire receipt.",
+    "columns": {
+      "id": {
+        "description": "Primary key."
+      },
+      "store_id": {
+        "description": "Foreign key referencing stores.id"
+      },
+      "cash_desk": {
+        "description": "Checkout identifier; 101 is the store's leftmost checkout."
+      },
+      "transaction_start": {
+        "description": "Time of the first scan"
+      },
+      "transaction_end": {
+        "description": "Time of the receipt printing"
+      },
+      "total_amount": {
+        "description": "Receipt grand total in EUR"
+      },
+      "n_lines": {
+        "description": "Number of valid lines on the receipt"
+      },
+      "payment_medium": {
+        "description": "Did customer pay in cash or by card?"
+      },
+      "customer_feedback": {
+        "description": "Stars received (SCO only)"
+      },
+      "damage": {
+        "description": "Total potential monetary loss due to discovered fraud (SCO only)"
+      },
+      "label": {
+        "description": "Customer classification after basket check."
+      }
+    }
+  },
+  "transaction_lines": {
+    "description": "Each row represents a quantity of a distinct article on a receipt. Contains all data specific to the line.",
+    "columns": {
+      "id": {
+        "description": "Composite key; Receipt line number"
+      },
+      "transaction_id": {
+        "description": "Composite key, foreign key referencing transactions.id; parent transaction"
+      },
+      "product_id": {
+        "description": "Foreign key referencing product.id; SKU of the scanned article"
+      },
+      "timestamp": {
+        "description": "Scan time"
+      },
+      "pieces_or_weight": {
+        "description": "Quantity of the product in kg or pieces, depending on product type"
+      },
+      "sales_price": {
+        "description": "Amount customer paid in EUR"
+      },
+      "was_voided": {
+        "description": "Was line marked as void?"
+      },
+      "camera_product_similar": {
+        "description": "True if the combination of article seen by the camera and scanned barcode has been seen several times before."
+      },
+      "camera_certainty": {
+        "description": "Estimated probability of the camera's product matching being correct."
+      }
+    }
+  }
+}
