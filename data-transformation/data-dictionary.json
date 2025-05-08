@@ -1,0 +1,210 @@
+{
+    "id": {
+        "datatype": "String",
+        "description": "Id der Transaktion"
+    },
+    "cash_desk": {
+        "datatype": "Categorical",
+        "description": "Nummer der Kasse"
+    },
+    "total_amount": {
+        "datatype": "Float64",
+        "description": "Totalbetrag der Transaktion"
+    },
+    "n_lines": {
+        "datatype": "Int64",
+        "description": "Anzahl der Positionen in der Transaktion"
+    },
+    "payment_medium": {
+        "datatype": "Categorical",
+        "description": "Zahlungsart: CASH | CREDIT_CARD"
+    },
+    "has_feedback": {
+        "datatype": "Boolean",
+        "description": "wurde Feedback gegeben"
+    },
+    "feedback_low": {
+        "datatype": "Boolean",
+        "description": "schlechtes Feedback [1-3]"
+    },
+    "feedback_middle": {
+        "datatype": "Boolean",
+        "description": "mittleres Feedback [4-6]"
+    },
+    "feedback_high": {
+        "datatype": "Boolean",
+        "description": "gutes Feedback [7-9]"
+    },
+    "feedback_top": {
+        "datatype": "Boolean",
+        "description": "maximales Feedback 10"
+    },
+    "daytime": {
+        "datatype": "Categorical",
+        "description": "Zeitpunkt des Einkaufs: [morning (8-11), noon (12-15), afternoon (16-19), evening (19-22)]"
+    },
+    "hour": {
+        "datatype": "Int8",
+        "description": "Zeitpunkt des Einkaufs (Stunde): [8-22]"
+    },
+    "hour_categorical": {
+        "datatype": "Categorical",
+        "description": "Zeitpunkt des Einkaufs (Stunde): [8-22] alse kategorisches Merkmal"
+    },
+    "day_of_week": {
+        "datatype": "Categorical",
+        "description": "Wochentag des Einkaufs: [Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday]"
+    },
+    "month": {
+        "datatype": "Categorical",
+        "description": "Monat des Einkaufs [1-12]"
+    },
+    "transaction_duration_seconds": {
+        "datatype": "Int64",
+        "description": "Dauer der Transaktion in Sekunden"
+    },
+    "damage": {
+        "datatype": "Float64",
+        "description": "Hohe des geschätzten Schadens in Euro (falls LABEL == FRAUD)"
+    },
+    "label": {
+        "datatype": "Categorical",
+        "description": "falls Kontrolle durchgeführt wurde, das Ergebnis: [FRAUD, NO_FRAUD], sonst UNKOWN"
+    },
+    "store_id": {
+        "datatype": "Categorical",
+        "description": "Id der Filiale"
+    },
+    "location": {
+        "datatype": "Categorical",
+        "description": "Standord der Filiale"
+    },
+    "urbanization": {
+        "datatype": "Categorical",
+        "description": "RURAL / TOWNS / CITIES"
+    },
+    "has_voided": {
+        "datatype": "Boolean",
+        "description": "wurde eine Position storniert"
+    },
+    "n_voided": {
+        "datatype": "UInt32",
+        "description": "Anzahl stornierter Positionen"
+    },
+    "n_age_restricted": {
+        "datatype": "UInt32",
+        "description": "Anzahl Positionen mit altersbeschränkten Produkten"
+    },
+    "has_age_restricted": {
+        "datatype": "Boolean",
+        "description": "Enthält die Transaktion altersbeschränkte Produkte"
+    },
+    "popularity_max": {
+        "datatype": "Float64",
+        "description": "maximaler Beliebtheitswert der Produkte in der Transaktion"
+    },
+    "popularity_min": {
+        "datatype": "Float64",
+        "description": "minimaler Beliebtheitswert der Produkte in der Transaktion"
+    },
+    "max_product_price": {
+        "datatype": "Float64",
+        "description": "maximaler Produktpreis in der Transaktion"
+    },
+    "n_sold_by_weight": {
+        "datatype": "UInt32",
+        "description": "Anzahl Positionen mit Artikeln, die nach Gewicht verkauft werden"
+    },
+    "has_sold_by_weight": {
+        "datatype": "Boolean",
+        "description": "enthält die Transaktion Artikel, die nach Gewicht verkauft werden"
+    },
+    "has_camera_detected_wrong_product": {
+        "datatype": "Boolean",
+        "description": "wurde ein Artikel von der Kamera als falsch erkannt"
+    },
+    "has_camera_detected_wrong_product_high_certainty": {
+        "datatype": "Boolean",
+        "description": "wurde ein Artikel von der Kamera mit einer hohen Wahrscheinlichkeit (> 0.8) als falsch erkannt"
+    },
+    "has_fruits_vegetables_pieces": {
+        "datatype": "Boolean",
+        "description": "Transaktion enthält Positionen der Kategorie Obst und Gemüse, die nach Stück verkauft werden"
+    },
+    "has_beverages": {
+        "datatype": "Boolean",
+        "description": "Transaktion enthält Positionen der Kategorie Getränke"
+    },
+    "has_bakery": {
+        "datatype": "Boolean",
+        "description": "Transaktion enthält Positionen der Kategorie Bäckerei"
+    },
+    "has_dairy": {
+        "datatype": "Boolean",
+        "description": "Transaktion enthält Positionen der Kategorie Milchprodukte"
+    },
+    "has_fruits_vegetables": {
+        "datatype": "Boolean",
+        "description": "Transaktion enthält Positionen der Kategorie Obst und Gemüse"
+    },
+    "has_convenience": {
+        "datatype": "Boolean",
+        "description": "Transaktion enthält Positionen der Kategorie Convenience"
+    },
+    "has_personal_care": {
+        "datatype": "Boolean",
+        "description": "Transaktion enthält Positionen der Kategorie Körperpflege"
+    },
+    "has_snacks": {
+        "datatype": "Boolean",
+        "description": "Transaktion enthält Positionen der Kategorie Snacks"
+    },
+    "has_long_shelf_life": {
+        "datatype": "Boolean",
+        "description": "Transaktion enthält Positionen der Kategorie Lange Haltbar"
+    },
+    "has_limited_time_offers": {
+        "datatype": "Boolean",
+        "description": "Transaktion enthält Positionen der Kategorie Limitierte Angebote"
+    },
+    "has_frozen_goods": {
+        "datatype": "Boolean",
+        "description": "Transaktion enthält Positionen der Kategorie Tiefkühlprodukte"
+    },
+    "has_household": {
+        "datatype": "Boolean",
+        "description": "Transaktion enthält Positionen der Kategorie Haushalt"
+    },
+    "has_tobacco": {
+        "datatype": "Boolean",
+        "description": "Transaktion enthält Positionen der Kategorie Tabak"
+    },
+    "has_alcohol": {
+        "datatype": "Boolean",
+        "description": "Transaktion enthält Positionen der Kategorie Alkohol"
+    },
+    "has_missing": {
+        "datatype": "Boolean",
+        "description": "Transaktion enthält Position mit fehlender product_id"
+    },
+    "mean_time_between_scans": {
+        "datatype": "Float64",
+        "description": "Durchschnittliche Zeit zwischen den Scans in Sekunden"
+    },
+    "max_time_between_scans": {
+        "datatype": "Float64",
+        "description": "Maximale Zeit zwischen den Scans in Sekunden"
+    },
+    "time_to_first_scan": {
+        "datatype": "Float64",
+        "description": "Zeit zwischen dem Start der Transaktion und dem ersten Scan in Sekunden"
+    },
+    "time_from_last_scan_to_end": {
+        "datatype": "Float64",
+        "description": "Zeit ab dem letzten Scan bis zum Ende der Transaktion in Sekunden"
+    },
+    "days_since_sco_introduction": {
+        "datatype": "Int64",
+        "description": "Anzahl der Tage seit der Einführung des Self-Checkout-Systems in der Filiale"
+    }
+}
