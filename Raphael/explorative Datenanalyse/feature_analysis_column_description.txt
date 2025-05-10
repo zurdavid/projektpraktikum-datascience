@@ -1,0 +1,40 @@
+Spaltenbeschreibung für feature_analysis_[damage|label].xlsx
+
+feature:
+  Name des untersuchten Merkmals (einzelnes Feature)
+
+r2_train:
+  R² im Trainingsdatensatz (nur bei linearer Regression sinnvoll)
+
+r2_test:
+  R² im Testdatensatz (Out-of-Sample-Güte, nur bei linearer Regression sinnvoll)
+
+correlation_test:
+  Richtung und Stärke der Korrelation im Testset (nur bei kontinuierlichen Features sinnvoll)
+
+p_value_train:
+  p-Wert der Feature-Signifikanz im linearen Modell (niedrig = signifikant)
+
+heteroskedasticity_pval_train:
+  p-Wert des Breusch-Pagan-Tests (Test auf konstante Fehlervarianz)
+
+normality_pval_train:
+  p-Wert des Tests auf Normalverteilung der Residuen (z. B. D'Agostino)
+
+pseudo_r2_test:
+  Pseudo-R² nach McFadden für logistische Regression (0–1; höher ist besser)
+
+accuracy_test:
+  Klassifikationsgenauigkeit im Testset bei logistischem Modell
+
+n_obs_train:
+  Anzahl gültiger Trainingsbeobachtungen nach Drop von NaNs/Inf
+
+n_obs_test:
+  Anzahl gültiger Testbeobachtungen nach Drop von NaNs/Inf
+
+model_type:
+  Verwendeter Modelltyp: ols (linear), logit (logistisch), logit_perfect (perfekte Trennung), error (Modellabbruch)
+
+error:
+  Fehlermeldung, falls das Modell nicht erfolgreich geschätzt werden konnte
