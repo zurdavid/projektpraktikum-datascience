@@ -1,0 +1,13 @@
+Test der Einzelfeatures auf ihre Erklärkraft der Zielvariable:
+
+einzelne Features allein können weder damage noch label gut erklären. Die Erklärkraft ist nur bei
+einer einzigen Variable signifikant und relevant (payment_medium) - R^2 bei etwa 
+5% (bei damage) und pseudo* R^2 bei 26% (bei label)
+
+[*pseudo R^2:
+Pseudo-R2=1−logLnull​/logLfull​​
+log⁡LfulllogLfull​: Log-Likelihood des Modells mit den Prädiktoren
+log⁡LnulllogLnull​: Log-Likelihood eines Modells ohne Prädiktoren (nur Intercept)]
+
+Fazit: Einzelne Features reichen zur Vorhersage nicht aus, sie müssen kombiniert werden.
+
