@@ -1,3 +1,4 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Test der Einzelfeatures auf ihre Erklärkraft der Zielvariable:
 
 einzelne Features allein können weder damage noch label gut erklären. Die Erklärkraft ist nur bei
@@ -11,3 +12,14 @@ log⁡LnulllogLnull​: Log-Likelihood eines Modells ohne Prädiktoren (nur Inte
 
 Fazit: Einzelne Features reichen zur Vorhersage nicht aus, sie müssen kombiniert werden.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Multivariate Modelle (Regression)
+
+Ziehen wir nur die Variablen selbst in Betracht, erreichen wir bei der Vorhersage von damage
+eine Güte von rund 17% auf Test- und Trainingsdaten. Bei Klassifikation sogar fast 77% auf
+beiden Datensätzen. Offenbar lassen sich fehlerhafte Transaktionen deutlich leichter vorhersagen
+als die daraus entstandene Schadenshöhe.
+
+Die Modelle mit Interaktionstermen sind rechnerisch aufwendig. Aktuell laufen die Berechnungen noch.
+Wir wollen sehen, ob die Hinzunahme von Interaktionen (und später polynomiellen Features) die
+Performance erhöht.
