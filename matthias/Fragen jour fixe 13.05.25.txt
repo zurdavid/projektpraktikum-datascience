@@ -1,0 +1,33 @@
+1. Interne Fragen
+1.2.unberechtigter Rabatt--> inwieweit hilft uns diese Kenntnis?
+1.2.Welche unterschiedlichen Möglichkeiten eines Diebstahls etc. gibt es? Welche davon könnte man ggf. aus den Daten durch Plausibilitätschecks oder Verprobungen erkennen?
+1.4.Welche unterschiedlichen Möglichkeiten eines technischen Defekts etc. gibt es? Welche davon könnte man ggf. aus den Daten durch Plausibilitätschecks oder Verprobungen erkennen?
+1.5. Präsentation und Dokumentation besprechen.
+1.5 Wenn man die gegebene Bewertungsfunktion auf die durchgeführte Kontrolle anwendet: 143 TEUR falsche Kontrollen entspricht Kosten von 1.430 T€ Kosten, bei einem hochgerechneten Gesamtschaden von 350 TEUR
+
+
+2. Fragen an Frau Folz-Weinstein
+
+2.1 Bis wann wird die REST-Schnittstelle geliefert?
+
+2.2 Bis wann muss die Abgabe der Artefakte erfolgen? Entwurf vorab?
+
+2.3.Hinweis --Es gibt in einigen Merkmale statistisch signifikante Unterschiede zwischen Testdaten und Trainingsdaten: was bedeutet das für uns.
+
+2.4.Lässt sich der Damage immer aus den Mengen und Preisen der verlorenen Artikel bzw. dem zu Unrecht in Anspruch genommenen Rabatt erklären? 
+
+2.5.Wird bei einer Kontrolle auch ein im Mantel versteckter Artikel entdeckt oder nur ein Artikel im Einkaufskorb?
+
+2.6. Differenz Menge mal Preis/Einheit ungleich sales_price --> unberechtigter Rabatt? was ist die Ursache?
+
+2.7. Differenz Summe sales_price ungleich total_amount --> Wegen Stornos? Warum?
+
+2.8. Beim maximaler Damage handelt es sich um einen Storno ohne zugrunde liegendem Basiskauf? --> Wie ist das technisch möglich?
+
+2.9. Stornos haben normalerweise einen sales_price von 0, was Sinn macht. Teilweise gibt es aber Stornos mit positivem Wert und der selbe Artikel ist zusätzlich aufgeführt.
+
+2.10 stornierter Artikel wird im Warenkorb unabsichtlich vergessen und mitgenommen --> höheres Risiko für Fraud? --> Testen!
+
+2.11. Alle damages sind positiv. Was passiert, wenn jemand mehr bezahlt als er gekauft hat? (bezahlte Ware wird im Supermarkt vergessen oder zurückgelassen etc.?)            
+
+2.12. Fragen zur Camera Certainty und cameraproduct similar --> z.B. warum wird die Camera Certainty nicht verbessert?
