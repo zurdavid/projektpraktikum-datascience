@@ -4,8 +4,9 @@ from pathlib import Path
 
 # Pfad zum Ordner mit den Input Daten
 data_dir = Path("../data")
-# Pfad der Ausgabedatei
-output_path = "transformed_transactions.parquet"
+# Pfad der Ausgabedateien
+# wird erweitert um
+output_name= "transformed"
 
 transactions = pl.scan_parquet(data_dir / "transactions_train_3.parquet")
 lines = pl.scan_parquet(data_dir / "transaction_lines_train_3.parquet")
@@ -13,6 +14,10 @@ stores = pl.scan_csv(data_dir / "stores.csv")
 products = pl.scan_csv(data_dir / "products.csv")
 
 CAMERA_CERTAINTY_THRESHOLD = 0.8
+
+def with_column_first(df: pl.DataFrame, col_to_move: str) -> pl.DataFrame:
+    col_names = df.collect_schema().names()
+    return df.select([col_to_move] + [col for col in col_names if col != col_to_move])
 
 
 def transform_duration_to_seconds(duration: pl.Duration):
@@ -29,6 +34,21 @@ weekday_map = {
     5: "Friday",
     6: "Saturday",
     7: "Sunday",
+}
+
+month_map = {
+    1: "January",
+    2: "February",
+    3: "March",
+    4: "April",
+    5: "May",
+    6: "June",
+    7: "July",
+    8: "August",
+    9: "September",
+    10: "October",
+    11: "November",
+    12: "December",
 }
 
 # Mapping from hour to daytime name
@@ -54,10 +74,41 @@ daytime_map = {
     22: evening,
 }
 
+# Codierung nach https://www.fahrerbewertung.de/ortsliste
+stores_map = {
+    "Bielefeld": "BI",
+    "Berlin": "B",
+    "Bonn": "BN",
+    "Chemnitz": "C",
+    "Dortmund": "DO",
+    "Düsseldorf": "D",
+    "Heidelberg": "HD",
+    "Karlsruhe": "KA",
+    "Kassel": "KS",
+    "Köln": "K",
+    "Leipzig": "L",
+    "München": "M",
+    "Oberhausen": "OB",
+    "Osnabrück": "OS",
+    "Stuttgart": "S",
+}
 
-####################################################################################################
+feedback_map = {
+    1: "LOW",
+    2: "LOW",
+    3: "LOW",
+    4: "MIDDLE",
+    5: "MIDDLE",
+    6: "MIDDLE",
+    7: "HIGH",
+    8: "HIGH",
+    9: "HIGH",
+    10: "TOP",
+}
+
+################################################################################
 # Transformiere und wähle die Spalten aus der Tabelle mit den Transaktionen
-####################################################################################################
+################################################################################
 
 transactions_transformed = (
     transactions.with_columns(
@@ -70,7 +121,7 @@ transactions_transformed = (
             # Monat
             pl.col("transaction_start")
             .dt.month()
-            .cast(pl.Utf8)
+            .replace_strict(month_map, default=None)
             .cast(pl.Categorical)
             .alias("month"),  # monday = 1 and sunday = 7
             # Tageszeit
@@ -97,18 +148,36 @@ transactions_transformed = (
             .is_not_null()
             .cast(pl.Boolean)
             .alias("has_feedback"),
+            # Feedback mit missing als MISSING
+            pl.col("customer_feedback")
+            .replace_strict(feedback_map, default=None)
+            .fill_null("MISSING")
+            .cast(pl.Categorical)
+            .alias("feedback_categorical"),
             # low feedback = 1, 2, 3
-            (pl.col("customer_feedback").is_in([1, 2, 3]))
+            (
+                pl.col("customer_feedback").is_in(
+                    [k for k, v in feedback_map.items() if v == "LOW"]
+                )
+            )
             .fill_null(False)
             .alias("feedback_low")
             .cast(pl.Boolean),
             # middle feedback = 4, 5, 6
-            (pl.col("customer_feedback").is_in([4, 5, 6]))
+            (
+                pl.col("customer_feedback").is_in(
+                    [k for k, v in feedback_map.items() if v == "MIDDLE"]
+                )
+            )
             .fill_null(False)
             .cast(pl.Boolean)
             .alias("feedback_middle"),
             # high feedback = 7, 8, 9
-            (pl.col("customer_feedback").is_in([7, 8, 9]))
+            (
+                pl.col("customer_feedback").is_in(
+                    [k for k, v in feedback_map.items() if v == "HIGH"]
+                )
+            )
             .fill_null(False)
             .cast(pl.Boolean)
             .alias("feedback_high"),
@@ -133,6 +202,7 @@ transactions_transformed = (
             "n_lines",
             "payment_medium",
             "has_feedback",
+            "feedback_categorical",
             "feedback_low",
             "feedback_middle",
             "feedback_high",
@@ -152,12 +222,13 @@ transactions_transformed = (
     )
 )
 
-####################################################################################################
+################################################################################
 # Stores
-####################################################################################################
+################################################################################
 
 stores_transformed = stores.with_columns(
-    pl.col("sco_introduction").str.strptime(pl.Datetime, "%Y-%m-%d")
+    pl.col("sco_introduction").str.strptime(pl.Datetime, "%Y-%m-%d"),
+    pl.col("location").replace_strict(stores_map, default=None),
 ).select(
     [
         pl.col("id").alias("store_id"),
@@ -167,9 +238,9 @@ stores_transformed = stores.with_columns(
     ]
 )
 
-####################################################################################################
+################################################################################
 # Lines
-####################################################################################################
+################################################################################
 
 lines_with_products = lines.join(
     products,
@@ -222,26 +293,23 @@ lines_with_products_grouped = (
             pl.col("price").max().alias("max_product_price"),
             pl.col("sold_by_weight").sum().alias("n_sold_by_weight"),
             pl.col("sold_by_weight").max().alias("has_sold_by_weight").cast(pl.Boolean),
-            pl.col("camera_product_similar")
-            .min()
-            .alias("has_camera_detected_wrong_product")
-            .cast(pl.Boolean),
+            (pl.col("camera_product_similar").min().not_())
+            .alias("has_camera_detected_wrong_product"),
             (
-                pl.col("camera_product_similar")
+                (pl.col("camera_product_similar").not_())
                 & (pl.col("camera_certainty") >= CAMERA_CERTAINTY_THRESHOLD)
             )
-            .min()
+            .max()
             .alias("has_camera_detected_wrong_product_high_certainty")
-            .cast(pl.Boolean),
         ]
         # Produkt-Kategorien als One-Hot-Encoding
         + [pl.col(col).max().alias(col).cast(pl.Boolean) for col in category_columns]
     )
 )
 
-####################################################################################################
+################################################################################
 # Berechne Werte aus den Line Timestamps
-####################################################################################################
+################################################################################
 
 lines_with_timestamps_grouped = (
     lines.sort(["transaction_id", "timestamp"])
@@ -266,9 +334,9 @@ lines_with_timestamps_grouped = (
     )
 )
 
-####################################################################################################
+################################################################################
 # Joine alle Dataframes
-####################################################################################################
+################################################################################
 
 joined_table = (
     transactions_transformed.join(
@@ -332,6 +400,7 @@ joined_table = (
     # Drop Spalten die nicht mehr benötigt werden
     .drop(
         [
+            "id",
             "transaction_start",
             "transaction_end",
             "first_timestamp",
@@ -341,4 +410,57 @@ joined_table = (
     )
 )
 
-joined_table.sink_parquet(output_path)
+################################################################################
+# fill missing values
+################################################################################
+
+def fill_missing_values_with_mode(col: str) -> pl.Expr:
+    return pl.col(col).fill_null(
+        pl.col(col).mode().first().over("label")
+    )
+
+
+def fill_missing_values_with_mean(col: str) -> pl.Expr:
+    return pl.col(col).fill_null(
+        pl.col(col).mean().over("label")
+    )
+
+
+def fill_missing_values(df: pl.LazyFrame) -> pl.LazyFrame:
+    column_names_mode = ["has_camera_detected_wrong_product", "has_camera_detected_wrong_product_high_certainty"]
+    column_names_mean = ["mean_time_between_scans", "max_time_between_scans"]
+
+    return df.with_columns(
+        [fill_missing_values_with_mode(col) for col in column_names_mode]
+        +
+        [fill_missing_values_with_mean(col) for col in column_names_mean]
+        )
+
+
+################################################################################
+# write to file
+################################################################################
+
+def write_with_label(df: pl.DataFrame, filename: str):
+    df = with_column_first(df, "label").drop("damage")
+    df.write_parquet(filename)
+
+
+def write_with_damage(df: pl.DataFrame, filename: str):
+    df = with_column_first(df, "damage")
+    df.write_parquet(filename)
+
+
+def write_transformed_df(df: pl.DataFrame):
+    write_with_damage(df, f"{output_name}_damage_first_FULL.parquet")
+    write_with_label(df, f"{output_name}_label_first_FULL.parquet")
+
+    joined_table_labeled = df.filter(pl.col("label") != "UNKNOWN")
+    write_with_damage(joined_table_labeled, f"{output_name}_damage_first.parquet")
+    write_with_label(joined_table_labeled, f"{output_name}_label_first.parquet")
+
+
+joined_table = fill_missing_values(joined_table)
+joined_table = joined_table.drop_nulls()
+write_transformed_df(joined_table.collect())
+
