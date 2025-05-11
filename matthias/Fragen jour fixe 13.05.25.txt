@@ -31,3 +31,8 @@
 2.11. Alle damages sind positiv. Was passiert, wenn jemand mehr bezahlt als er gekauft hat? (bezahlte Ware wird im Supermarkt vergessen oder zurückgelassen etc.?)            
 
 2.12. Fragen zur Camera Certainty und cameraproduct similar --> z.B. warum wird die Camera Certainty nicht verbessert?
+
+David:
+- wie funktionieren Kontrollen -> sind "gestohlene" Artikel in lines erfasst? (manchmal ja, manchmal nicht ?)
+- wie lassen sich Transaktionen ohne zugehörige line erklären (?)
+- wie lassen sich stornierte lines, bei denen die Artikel-ID fehlt erklären?
