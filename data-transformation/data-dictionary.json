@@ -57,7 +57,7 @@
     },
     "month": {
         "datatype": "Categorical",
-        "description": "Monat des Einkaufs [1-12]"
+        "description": "Monat des Einkaufs."
     },
     "transaction_duration_seconds": {
         "datatype": "Int64",
@@ -127,9 +127,13 @@
         "datatype": "Boolean",
         "description": "wurde ein Artikel von der Kamera mit einer hohen Wahrscheinlichkeit (> 0.8) als falsch erkannt"
     },
-    "has_fruits_vegetables_pieces": {
+    "calculated_price_difference": {
+        "datatype": "Float64",
+        "description": "Differenz aus errechnetem Nominalpreis minus tatsächlich bezahltem Preis. (Summe von (price * pieces_or_weight - sales_price) über alle Positionen der Transaktion."
+    },
+    "has_positive_price_difference": {
         "datatype": "Boolean",
-        "description": "Transaktion enthält Positionen der Kategorie Obst und Gemüse, die nach Stück verkauft werden"
+        "description": "calculated_price_difference ist positiv (> 0.01)"
     },
     "has_beverages": {
         "datatype": "Boolean",

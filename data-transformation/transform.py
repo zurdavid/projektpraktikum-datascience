@@ -250,16 +250,18 @@ lines_with_products = lines.join(
     how="left",
 ).select(
     [
-        pl.col("transaction_id"),
-        pl.col("product_id"),
-        pl.col("was_voided"),
-        pl.col("camera_product_similar"),
-        pl.col("camera_certainty"),
-        pl.col("price"),
-        pl.col("category"),
-        pl.col("popularity"),
-        pl.col("sold_by_weight"),
-        pl.col("age_restricted"),
+        "transaction_id",
+        "product_id",
+        "was_voided",
+        "pieces_or_weight",
+        "sales_price",
+        "camera_product_similar",
+        "camera_certainty",
+        "price",
+        "category",
+        "popularity",
+        "sold_by_weight",
+        "age_restricted",
     ]
 )
 
@@ -281,6 +283,7 @@ lines_with_products_grouped = (
     # Replace missing category with "MISSING" (siginificant feature)
     .with_columns(pl.col("category").fill_null("MISSING"))
     .with_columns(category_one_hot_exprs)
+    .with_columns(((pl.col("price") * pl.col("pieces_or_weight")) - pl.col("sales_price")).alias("calculated_price_difference"))
     .group_by("transaction_id")
     .agg(
         [
@@ -298,9 +301,10 @@ lines_with_products_grouped = (
             (
                 (pl.col("camera_product_similar").not_())
                 & (pl.col("camera_certainty") >= CAMERA_CERTAINTY_THRESHOLD)
-            )
-            .max()
-            .alias("has_camera_detected_wrong_product_high_certainty")
+            ).max().alias("has_camera_detected_wrong_product_high_certainty"),
+            pl.col("calculated_price_difference").sum(),
+            (pl.col("calculated_price_difference").sum() > 0.1).cast(pl.Boolean).alias("has_positive_price_difference"),
+
         ]
         # Produkt-Kategorien als One-Hot-Encoding
         + [pl.col(col).max().alias(col).cast(pl.Boolean) for col in category_columns]
@@ -460,7 +464,12 @@ def write_transformed_df(df: pl.DataFrame):
     write_with_label(joined_table_labeled, f"{output_name}_label_first.parquet")
 
 
+def drop_rows_with_null(df: pl.LazyFrame) -> pl.LazyFrame:
+    col_names = [col for col in df.collect_schema().names() if col != "damage"]
+    return df.drop_nulls(col_names)
+
+
 joined_table = fill_missing_values(joined_table)
-joined_table = joined_table.drop_nulls()
+joined_table = drop_rows_with_null(joined_table)
 write_transformed_df(joined_table.collect())
 
