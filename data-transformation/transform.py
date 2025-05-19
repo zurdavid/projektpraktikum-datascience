@@ -451,7 +451,7 @@ def write_with_label(df: pl.DataFrame, filename: str):
 
 
 def write_with_damage(df: pl.DataFrame, filename: str):
-    df = with_column_first(df, "damage")
+    df = with_column_first(df, "damage").drop("label")
     df.write_parquet(filename)
 
 
