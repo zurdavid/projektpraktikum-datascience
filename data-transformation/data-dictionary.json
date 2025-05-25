@@ -39,6 +39,11 @@
         "datatype": "Boolean",
         "description": "maximales Feedback 10"
     },
+    "feedback_categorical": {
+        "datatype": "Categorical",
+        "description": "Kategoriale Spalte: [MISSING, LOW, MIDDLE, HIGH, TOP]"
+    },
+
     "daytime": {
         "datatype": "Categorical",
         "description": "Zeitpunkt des Einkaufs: [morning (8-11), noon (12-15), afternoon (16-19), evening (19-22)]"
@@ -86,6 +91,10 @@
     "has_voided": {
         "datatype": "Boolean",
         "description": "wurde eine Position storniert"
+    },
+    "has_voided": {
+        "datatype": "Boolean",
+        "description": "Transaktion enthält einen von der Kamera erkannten Artikel, der nicht gescannt wurde"
     },
     "n_voided": {
         "datatype": "UInt32",
@@ -151,6 +160,11 @@
         "datatype": "Boolean",
         "description": "Transaktion enthält Positionen der Kategorie Obst und Gemüse"
     },
+    "has_fruits_vegetables_pieces": {
+        "datatype": "Boolean",
+        "description": "Transaktion enthält Positionen der Kategorie Obst und Gemüse (Stückpreis)"
+    },
+
     "has_convenience": {
         "datatype": "Boolean",
         "description": "Transaktion enthält Positionen der Kategorie Convenience"

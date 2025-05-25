@@ -15,9 +15,9 @@ products = pl.scan_csv(data_dir / "products.csv")
 
 CAMERA_CERTAINTY_THRESHOLD = 0.8
 
-def with_column_first(df: pl.DataFrame, col_to_move: str) -> pl.DataFrame:
+def with_columns_first(df: pl.DataFrame, cols_to_move: list[str]) -> pl.DataFrame:
     col_names = df.collect_schema().names()
-    return df.select([col_to_move] + [col for col in col_names if col != col_to_move])
+    return df.select(cols_to_move + [col for col in col_names if col not in cols_to_move])
 
 
 def transform_duration_to_seconds(duration: pl.Duration):
@@ -289,6 +289,7 @@ lines_with_products_grouped = (
         [
             pl.col("was_voided").max().alias("has_voided").cast(pl.Boolean),
             pl.col("was_voided").sum().alias("n_voided"),
+            (pl.col("was_voided") & (pl.col("sales_price") == 0) & pl.col("camera_product_similar").not_()).any().cast(pl.Boolean).alias("has_unscanned"),
             pl.col("age_restricted").sum().alias("n_age_restricted"),
             pl.col("age_restricted").max().alias("has_age_restricted").cast(pl.Boolean),
             pl.col("popularity").max().alias("popularity_max"),
@@ -401,6 +402,7 @@ joined_table = (
             ]
         ]
     )
+    .with_columns(pl.col("id").alias("transaction_id"))
     # Drop Spalten die nicht mehr benötigt werden
     .drop(
         [
@@ -446,20 +448,26 @@ def fill_missing_values(df: pl.LazyFrame) -> pl.LazyFrame:
 ################################################################################
 
 def write_with_label(df: pl.DataFrame, filename: str):
-    df = with_column_first(df, "label").drop("damage")
+    df = with_columns_first(df, ["label"]).drop("damage")
     df.write_parquet(filename)
 
 
 def write_with_damage(df: pl.DataFrame, filename: str):
-    df = with_column_first(df, "damage").drop("label")
+    df = with_columns_first(df, ["damage"]).drop("label")
     df.write_parquet(filename)
 
 
+def write_with_label_and_damage(df: pl.DataFrame, filename: str):
+    df = with_columns_first(df, ["label", "damage"])
+    df.write_parquet(filename)
+
 def write_transformed_df(df: pl.DataFrame):
-    write_with_damage(df, f"{output_name}_damage_first_FULL.parquet")
+    write_with_label_and_damage(df, f"{output_name}_label_and_damage_FULL.parquet")
+    write_with_label(df, f"{output_name}_label_first_FULL.parquet")
     write_with_label(df, f"{output_name}_label_first_FULL.parquet")
 
     joined_table_labeled = df.filter(pl.col("label") != "UNKNOWN")
+    write_with_label_and_damage(joined_table_labeled, f"{output_name}_label_and_damage.parquet")
     write_with_damage(joined_table_labeled, f"{output_name}_damage_first.parquet")
     write_with_label(joined_table_labeled, f"{output_name}_label_first.parquet")
 
