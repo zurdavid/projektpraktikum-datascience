@@ -1,8 +1,13 @@
+import logging
+import os
+import pickle
+import sys
 from pathlib import Path
 
 import numpy as np
 import optuna
 import torch
+from optuna.samplers import BaseSampler, TPESampler
 from optuna.trial import Trial
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -13,6 +18,7 @@ from .. import data_loader, metrics
 
 DEVICE = "cpu"
 THRESHOLD = 0.5
+SAMPLER_PATH = "sampler.pkl"
 
 
 def define_model(trial: Trial, input_size: int):
@@ -176,7 +182,41 @@ def objective(
     )
 
 
-def optimize(path: Path, n_trials: int, seed: int = 42):
+def get_sampler(sampler_path: str, seed: int) -> BaseSampler:
+    """
+    Load an Optuna sampler from a file if it exists.
+    Otherwise, create a new TPESampler with the given seed and save it.
+
+    Args:
+        sampler_path (str): Path to the sampler pickle file.
+        seed (int): Random seed for the TPESampler.
+
+    Returns:
+        BaseSampler: The loaded or newly created sampler.
+    """
+    if os.path.exists(sampler_path):
+        print(f"Load sampler from {sampler_path}")
+        return pickle.load(open("sampler.pkl", "rb"))
+    else:
+        print(f"Created new TPESampler and saved to {sampler_path}")
+        return TPESampler(seed=seed)
+
+
+def save_sampler(study, path) -> None:
+    with open(path, "wb") as fout:
+        pickle.dump(study.sampler, fout)
+
+
+def save_sampler_callback(sampler, path: str):
+    def callback(study, trial):
+        with open(path, "wb") as f:
+            pickle.dump(sampler, f)
+        print(f"Sampler saved after trial {trial.number}")
+
+    return callback
+
+
+def optimize(path: Path, n_trials: int, seed: int = 42) -> None:
     X, targets = data_loader.load_data_np(path)
     input_size = X.shape[1]
 
@@ -200,5 +240,23 @@ def optimize(path: Path, n_trials: int, seed: int = 42):
     def wrapped_objective(trial):
         return objective(trial, dataset, test_dataset, input_size)
 
-    study = optuna.create_study(direction="maximize")
-    study.optimize(wrapped_objective, show_progress_bar=True, n_trials=n_trials)
+    sampler = get_sampler(SAMPLER_PATH, seed)
+
+    optuna.logging.get_logger("optuna").addHandler(logging.StreamHandler(sys.stdout))
+    study_name = "neuralnet_clf"  # Unique identifier of the study.
+    storage_name = "sqlite:///{}.db".format(study_name)
+    study = optuna.create_study(
+        study_name=study_name,
+        storage=storage_name,
+        direction="maximize",
+        load_if_exists=True,
+        sampler=sampler,
+    )
+    study.optimize(
+        wrapped_objective,
+        show_progress_bar=True,
+        n_trials=n_trials,
+        callbacks=[save_sampler_callback(sampler, SAMPLER_PATH)],
+    )
+
+    save_sampler(study, path)
