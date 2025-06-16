@@ -1,8 +1,8 @@
 import numpy as np
 import torch
 from sklearn.preprocessing import StandardScaler
-from torch import nn, optim
-from torch.utils.data import DataLoader, TensorDataset
+from torch import batch_norm, nn, optim
+from torch.utils.data import DataLoader, Sampler, TensorDataset
 from xgboost import XGBRegressor
 
 from fraud_detection.models.types import DamagePredictionModel, FraudDetectionModel
@@ -18,20 +18,25 @@ class NNFraudDetector(FraudDetectionModel):
     def __init__(
         self,
         model: FFNN,
+        name: str,
         loss_fn,
         optimizer: optim.Optimizer,
         scheduler,
         batch_size: int,
         epochs: int,
-        threshold=0.8,
+        threshold=0.5,
     ):
         self.model = model
+        self._name = name
         self.loss_fn = loss_fn
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.batch_size = batch_size
         self.epochs = epochs
         self.threshold = threshold
+
+    def name(self) -> str:
+        return self._name
 
     def fit(
         self,
@@ -53,10 +58,13 @@ class NNFraudDetector(FraudDetectionModel):
         dataset = TensorDataset(Xt, yt)
         train_loader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
         test_dataset = TensorDataset(Xt_test, yt_test)
-        test_loader = DataLoader(test_dataset, batch_size=self.batch_size, shuffle=True)
-        
+        test_loader = DataLoader(test_dataset, batch_size=self.batch_size)
+
         self.scheduler = torch.optim.lr_scheduler.OneCycleLR(
-            self.optimizer, max_lr=1e-2, steps_per_epoch=len(train_loader), epochs=self.epochs
+            self.optimizer,
+            max_lr=1e-2,
+            steps_per_epoch=len(train_loader),
+            epochs=self.epochs,
         )
 
         self.model, _ = train_classifier(
@@ -91,16 +99,21 @@ class DamageRegressor(DamagePredictionModel):
     def __init__(
         self,
         model: FFNN,
+        name: str,
         loss_fn,
         optimizer: optim.Optimizer,
         batch_size: int,
         epochs: int,
     ):
         self.model = model
+        self._name = name
         self.loss_fn = loss_fn
         self.optimizer = optimizer
         self.batch_size = batch_size
         self.epochs = epochs
+
+    def name(self) -> str:
+        return self._name
 
     def fit(self, X: np.ndarray, y: np.ndarray):
         self.scaler = StandardScaler()
@@ -138,13 +151,16 @@ def getNN_regressor(input_size: int):
     batch_size = 256
     epochs = 1000
 
-    return DamageRegressor(model, loss_fn, optimizer, batch_size, epochs)
+    return DamageRegressor(
+        model, "NN Regressor", loss_fn, optimizer, batch_size, epochs
+    )
 
 
 class NNFraudDetectorWithDamagePrediction(FraudDetectionModel):
     def __init__(
         self,
         model: FFNN,
+        name: str,
         loss_fn,
         optimizer: optim.Optimizer,
         batch_size: int,
@@ -152,11 +168,15 @@ class NNFraudDetectorWithDamagePrediction(FraudDetectionModel):
         regressor,
     ):
         self.model = model
+        self._name = name
         self.loss_fn = loss_fn
         self.optimizer = optimizer
         self.batch_size = batch_size
         self.epochs = epochs
         self.regressor = regressor
+
+    def name(self) -> str:
+        return self._name
 
     def fit(
         self,
@@ -189,7 +209,7 @@ class NNFraudDetectorWithDamagePrediction(FraudDetectionModel):
         # self.loss_fn,
         # )
 
-        self.model, opt = load_model("models/model_final.pth", optim.AdamW)
+        self.model, _ = load_model("models/model_final.pth", optim.AdamW)
         self.model.eval()
 
         labels = y_train[:, 0]
@@ -200,7 +220,7 @@ class NNFraudDetectorWithDamagePrediction(FraudDetectionModel):
         ds = self.regressor.predict(X_train)
         malus = find_params(ps, ds, labels, damage)
         print(f"malus {malus}")
-        malus = 90
+        malus = 11
         self.cost_function = lambda p, d: p > malus / (5 + malus + d)
 
     def predict(self, X: np.ndarray) -> np.ndarray:
@@ -221,25 +241,32 @@ class NNFraudDetectorWithDamagePrediction(FraudDetectionModel):
 
 
 def getNN(input_size: int):
-    inner_layers = [64, 32, 16, 8]
-    # inner_layers = [128, 32, 16, 16]
+    # inner_layers = [64, 32, 16, 8]
+    # inner_layers = [64, 16]
+    # inner_layers = [64, 16]
+    # inner_layers = [32, 8, 4]
+    # inner_layers = [128, 64, 16, 16]
+    inner_layers = [32]
 
-    model = FFNN(input_size, 1, inner_layers, dropout=0.5)
+    model = FFNN(input_size, 1, inner_layers, dropout=0.3)
 
     pos_weight = torch.tensor([3.0], dtype=torch.float).to(device)
-    loss_fn = torch.nn.BCEWithLogitsLoss(pos_weight=pos_weight.to(device))
-    # loss_fn = PenalizedLoss(pos_weight=pos_weight, false_positive_penalty=3.0)
+    # loss_fn = torch.nn.BCEWithLogitsLoss(pos_weight=pos_weight.to(device))
+    loss_fn = PenalizedLoss(pos_weight=pos_weight, false_positive_penalty=2.0)
     # loss_fn = WertkaufLoss(base_loss_weight=0.01, fp_penalty_weight=30.0, malus=100)
     #  loss_fn = FocalLoss(alpha=.25, gamma=2, pos_weight=pos_weight.to(device))
 
-    optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-5)
+    # optimizer = optim.AdamW(model.parameters(), lr=1e-2, weight_decay=1e-5)
+    optimizer = optim.Adam(model.parameters(), lr=1e-1)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, patience=5, factor=0.5
     )
-    batch_size = 128 
-    epochs = 20 
+    batch_size = 256
+    epochs = 20
 
-    return NNFraudDetector(model, loss_fn, optimizer, scheduler, batch_size, epochs)
+    return NNFraudDetector(
+        model, "NN Classifier", loss_fn, optimizer, scheduler, batch_size, epochs
+    )
 
 
 def getNN2(input_size: int):
@@ -254,7 +281,7 @@ def getNN2(input_size: int):
     optimizer = optim.AdamW(model.parameters(), lr=3e-4, weight_decay=1e-3)
 
     batch_size = 256
-    epochs = 10
+    epochs = 16
 
     regressor = XGBRegressor(
         n_estimators=100,
@@ -266,5 +293,11 @@ def getNN2(input_size: int):
     )
 
     return NNFraudDetectorWithDamagePrediction(
-        model, loss_fn, optimizer, batch_size, epochs, regressor
+        model,
+        "NN Combined Classifier",
+        loss_fn,
+        optimizer,
+        batch_size,
+        epochs,
+        regressor,
     )
