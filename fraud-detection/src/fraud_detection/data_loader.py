@@ -3,17 +3,6 @@ from pathlib import Path
 import polars as pl
 import polars.selectors as cs
 
-drop_features = [
-    "cash_desk",
-    "daytime",
-    "location",
-    "month",
-    "store_id",
-    "urbanization",
-    "days_since_sco_introduction",
-]
-drop_features = []
-
 classification_features = [
     "payment_medium",
     "hour",
@@ -34,7 +23,8 @@ regression_features = [
 ]
 
 
-def load_data_df(path: Path, filter_has_unscanned: bool = True):
+def load_data_df(path: Path, filter_has_unscanned: bool = True, drop_features=None):
+    drop_features = drop_features or []
     df = pl.read_parquet(path).drop("transaction_id").drop(drop_features)
 
     if filter_has_unscanned:
@@ -43,8 +33,10 @@ def load_data_df(path: Path, filter_has_unscanned: bool = True):
     return df
 
 
-def load_data(path: Path, features=None, filter_has_unscanned: bool = True):
-    df = load_data_df(path, filter_has_unscanned)
+def load_data(
+    path: Path, features=None, filter_has_unscanned: bool = True, drop_features=None
+):
+    df = load_data_df(path, filter_has_unscanned, drop_features=drop_features)
     # targets
     y = (
         df.select(["label", "damage"])
@@ -64,8 +56,18 @@ def load_data(path: Path, features=None, filter_has_unscanned: bool = True):
     return X, y
 
 
-def load_data_np(path: Path, features=None, filter_has_unscanned: bool = True):
-    X, y = load_data(path, features=features, filter_has_unscanned=filter_has_unscanned)
+def load_data_np(
+    path: Path,
+    features=None,
+    filter_has_unscanned: bool = True,
+    drop_features=None,
+):
+    X, y = load_data(
+        path,
+        features=features,
+        filter_has_unscanned=filter_has_unscanned,
+        drop_features=drop_features,
+    )
     X, y = X.to_numpy(), y.to_numpy()
     return X, y
 

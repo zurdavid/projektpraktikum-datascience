@@ -24,6 +24,15 @@ class FraudDetectionModel(Protocol):
         """
         ...
 
+    def name(self) -> str:
+        """
+        Get the name of the model.
+
+        Returns:
+            str: Name of the model.
+        """
+        ...
+
     def predict(self, X: np.ndarray) -> np.ndarray:
         """
         Predict fraud labels for the given samples.
@@ -51,6 +60,15 @@ class FraudDetectionModel(Protocol):
 
 class DamagePredictionModel(Protocol):
     """Protocol for regression models used in damage prediction."""
+
+    def name(self) -> str:
+        """
+        Get the name of the model.
+
+        Returns:
+            str: Name of the model.
+        """
+        ...
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> None:
         """

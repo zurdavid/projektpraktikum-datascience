@@ -1,3 +1,4 @@
+import itertools
 import time
 
 import numpy as np
@@ -29,9 +30,9 @@ class FFNN(nn.Module):
         layers.append(activation())
 
         # Hidden layers
-        for in_size, out_size in zip(hidden_layers, hidden_layers[1:], strict=False):
+        for in_size, out_size in itertools.pairwise(hidden_layers):
             layers.append(nn.Linear(in_size, out_size))
-            layers.append(nn.LayerNorm(out_size))
+            # layers.append(nn.LayerNorm(out_size))
             layers.append(activation())
             layers.append(nn.Dropout(dropout))
 
@@ -131,7 +132,8 @@ def train_classifier(
             loss.backward()
 
             optimizer.step()
-            scheduler.step()
+            if scheduler.type() == "OneCycleLR":
+                scheduler.step()
 
             epoch_losses.append(loss.detach().item())
 
@@ -141,8 +143,8 @@ def train_classifier(
         print(
             f"=> epoch: {epoch + 1}, loss: {mean_train_loss:.4f}, duration: {elapsed}"
         )
-        metrics_train = evaluate_classifier(model, train_data, loss_fn)
-        metrics_test = evaluate_classifier(model, test_data, loss_fn)
+        metrics_train = evaluate_classifier(model, train_data, loss_fn, "train", epoch)
+        metrics_test = evaluate_classifier(model, test_data, loss_fn, "test", epoch)
         metrics.print_metrics_comp(metrics_train, metrics_test)
 
         # scheduler.step(metrics_test["loss"])
@@ -153,19 +155,26 @@ def train_classifier(
 
         save_model(model, optimizer, f"models/model_epoch_{epoch + 1}.pth")
 
-    metrics_test = evaluate_classifier(model, test_data, loss_fn)
+    metrics_test = evaluate_classifier(model, test_data, loss_fn, "final")
 
     print("save model")
     save_model(model, optimizer, "models/model_final.pth")
     return model, metrics_test["Bewertung"]
 
 
-def evaluate_classifier(model: nn.Module, data_loader: DataLoader, loss_fn):
+def evaluate_classifier(
+    model: nn.Module,
+    data_loader: DataLoader,
+    loss_fn,
+    name: str,
+    epoch: int = -1,
+):
     model.eval()
     all_preds = []
     all_labels = []
     all_damages = []
     all_losses = []
+    all_probs = []
 
     with torch.no_grad():
         for X, y in data_loader:
@@ -183,6 +192,7 @@ def evaluate_classifier(model: nn.Module, data_loader: DataLoader, loss_fn):
             predicted = (probs > 0.5).long().view(-1)
 
             all_preds.append(predicted.cpu().numpy())
+            all_probs.append(probs.cpu().numpy())
             all_labels.append(y.long().cpu().numpy())
             all_damages.append(damage)
             all_losses.append(loss.cpu().item())
@@ -191,6 +201,9 @@ def evaluate_classifier(model: nn.Module, data_loader: DataLoader, loss_fn):
     preds = np.concatenate(all_preds, axis=0)
     labels = np.concatenate(all_labels, axis=0)
     damages = np.concatenate(all_damages, axis=0)
+    probs = np.concatenate(all_probs, axis=0)
+
+    metrics.propability_histogram(probs, labels, name, epoch, bins=20)
 
     bew = metrics.bewertung(preds, labels, damages)
     bew["loss"] = loss
@@ -219,7 +232,7 @@ def train_regression(
             optimizer.zero_grad()
 
             yhat = model(X)
-            loss = loss_fn(yhat.view(-1), y) + l1_regularization(model, lambda_l1=1e-2)
+            loss = loss_fn(yhat.view(-1), y)
 
             loss.backward()
 
@@ -231,15 +244,19 @@ def train_regression(
         train_losses[epoch] = mean_train_loss
         elapsed = time.time() - start_time
 
-        if epoch % 10 == 0:
+        if epoch % 1 == 0:
             print(
                 f"=> epoch: {epoch + 1}, loss: {mean_train_loss:.4f}, duration: {elapsed}"
             )
-            evaluate_regression_model(model, train_data)
+            m = evaluate_regression_model(model, train_data)
 
             elapsed = time.time() - start_time
             print(f"-- train and test duration: {elapsed}")
             print("\n" + "-" * 50 + "\n")
+
+            if m["MAE"] <= 0.15:
+                print("Stopping training early due to low MAE")
+                return model
 
     return model
 
@@ -265,3 +282,4 @@ def evaluate_regression_model(model, dataloader, device="cpu", final=False):
     m = metrics.regression(predictions, targets)
     for text, value in m.items():
         print(f"{text:<10} {value:>6.2f}")
+    return m

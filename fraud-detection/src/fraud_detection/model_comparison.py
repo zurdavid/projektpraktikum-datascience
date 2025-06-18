@@ -2,11 +2,14 @@ from pathlib import Path
 from typing import Sequence
 
 import numpy as np
-from sklearn.model_selection import StratifiedKFold, train_test_split
+from sklearn.model_selection import (
+    RepeatedStratifiedKFold,
+    train_test_split,
+)
 
 from . import metrics
 from .data_loader import load_data_np
-from .models.types import FraudDetectionModel
+from .models.types import DamagePredictionModel, FraudDetectionModel
 
 
 def train_model(
@@ -17,11 +20,18 @@ def train_model(
     seed: int = 42,
 ):
     X_train, X_test, y_train, y_test = map(
-        np.asarray, train_test_split(X, targets, test_size=test_size, random_state=seed)
+        np.asarray,
+        train_test_split(
+            X, targets, test_size=test_size, random_state=seed, stratify=targets[:, 0]
+        ),
     )
 
     clf.fit(X_train, y_train, X_test, y_test)
     preds = clf.predict(X_test)
+    probs = clf.predict_proba(X_test)
+
+    metrics.propability_histogram(probs, y_test[:, 0], clf.name(), bins=20)
+    metrics.plot_roc_curve(probs, y_test[:, 0], clf.name())
 
     bew = metrics.bewertung(preds, y_test[:, 0], y_test[:, 1])
     metrics.print_metrics(bew)
@@ -32,7 +42,7 @@ def train_classifier_with_cross_validation(
     clf: FraudDetectionModel,
     X: np.ndarray,
     targets: np.ndarray,
-    skf: StratifiedKFold,
+    skf: RepeatedStratifiedKFold,
 ):
     print(f"\n\nStart trainings for {name}")
 
@@ -56,17 +66,68 @@ def train_classifier_with_cross_validation(
 
 
 def compare_models(
-    models: Sequence[tuple[str, FraudDetectionModel]],
+    models: Sequence[FraudDetectionModel],
     datapath: Path,
     n_splits: int = 5,
+    n_repeats: int = 1,
     random_state: int = 42,
+    drop_features=None,
+    select_features=None,
 ):
-    X, targets = load_data_np(datapath)
-    skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+    X, targets = load_data_np(
+        datapath, features=select_features, drop_features=drop_features
+    )
+    skf = RepeatedStratifiedKFold(
+        n_splits=n_splits, n_repeats=n_repeats, random_state=random_state
+    )
 
     model_metrics = dict()
-    for name, model in models:
+    for model in models:
+        name = model.name()
         model_metrics[name] = train_classifier_with_cross_validation(
             name, model, X, targets, skf
         )
     return model_metrics
+
+
+def select_features_to_drop(
+    model: FraudDetectionModel,
+    datapath: Path,
+    features_to_drop: Sequence[str] = [],
+    n_splits: int = 5,
+    n_repeats: int = 1,
+    random_state: int = 42,
+):
+    skf = RepeatedStratifiedKFold(
+        n_splits=n_splits, n_repeats=n_repeats, random_state=random_state
+    )
+
+    model_metrics = dict()
+
+    for f in features_to_drop:
+        X, targets = load_data_np(datapath, drop_features=[f])
+        name = model.name()
+        model_metrics[f] = train_classifier_with_cross_validation(
+            name, model, X, targets, skf
+        )
+    return model_metrics
+
+
+def train_regression_model(
+    model: DamagePredictionModel,
+    X: np.ndarray,
+    targets: np.ndarray,
+    test_size: float = 0.2,
+    seed: int = 42,
+):
+    X_train, X_test, y_train, y_test = map(
+        np.asarray, train_test_split(X, targets, test_size=test_size, random_state=seed)
+    )
+
+    model.fit(X_train, y_train)
+    preds = model.predict(X_test)
+
+    bew = metrics.regression(preds, y_test[:, 1])
+    metrics.print_metrics(bew)
+
+    return model, bew
