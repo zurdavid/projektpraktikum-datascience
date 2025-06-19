@@ -1,4 +1,6 @@
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 
 def cost_fn(probs, damage, malus):
@@ -21,10 +23,29 @@ def bewertung(yhat, y, damage):
 
 
 def find_params(probs, pred_damage, y, damage):
+    plothist(probs)
     n = len(y)
     mali = np.arange(1, 200)
     malus = np.tile(mali, (n, 1)).T
     yhat = cost_fn(probs, pred_damage, malus)
     res = bewertung(yhat, y, damage)
+    df = pd.DataFrame({"malus": mali, "bewertung": res})
+    df.to_csv("bew.csv")
     idx = np.argmax(res)
     return mali[idx]
+
+
+def plothist(d):
+    # use log scale
+    plt.hist(d, bins=20, log=True)
+    plt.savefig("hist.png")
+
+
+def find_optimal_threshhold(probs, y, damage):
+    threshold = np.linspace(0.1, 1.0, 100)
+    threshold_grid = np.tile(threshold, (len(y), 1)).T
+    preds = (probs > threshold_grid).astype(int)
+    res = bewertung(preds, y, damage)
+    idx = np.argmax(res)
+    threshold = threshold[idx]
+    return threshold

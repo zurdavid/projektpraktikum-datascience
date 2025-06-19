@@ -1,3 +1,4 @@
+import itertools
 import time
 
 import numpy as np
@@ -29,8 +30,9 @@ class FFNN(nn.Module):
         layers.append(activation())
 
         # Hidden layers
-        for in_size, out_size in zip(hidden_layers, hidden_layers[1:], strict=False):
+        for in_size, out_size in itertools.pairwise(hidden_layers):
             layers.append(nn.Linear(in_size, out_size))
+            # layers.append(nn.LayerNorm(out_size))
             layers.append(activation())
             layers.append(nn.Dropout(dropout))
 
@@ -47,6 +49,55 @@ class FFNN(nn.Module):
             return self.network(x)
 
 
+def save_model(model: FFNN, optimizer: torch.optim.Optimizer, path: str):
+    """Save model and optimizer state to a file."""
+    torch.save(
+        {
+            "model_state_dict": model.state_dict(),
+            "optimizer_state_dict": optimizer.state_dict(),
+            "model_config": {
+                "input_size": model.network[0].in_features,
+                "output_size": model.network[-1].out_features,
+                "hidden_layers": [
+                    layer.out_features
+                    for layer in model.network
+                    if isinstance(layer, nn.Linear)
+                ][:-1],
+                "dropout": next(
+                    (m.p for m in model.network if isinstance(m, nn.Dropout)), 0.4
+                ),
+                "activation": type(model.network[1]),
+            },
+        },
+        path,
+    )
+    print(f"=> Model saved to {path}")
+
+
+def load_model(
+    path: str, optimizer_func, device="cpu"
+) -> tuple[FFNN, torch.optim.Optimizer]:
+    """Load model and optimizer state from a file."""
+    checkpoint = torch.load(path, map_location=device, weights_only=False)
+    config = checkpoint["model_config"]
+
+    model = FFNN(
+        input_size=config["input_size"],
+        output_size=config["output_size"],
+        hidden_layers=config["hidden_layers"],
+        dropout=config["dropout"],
+        activation=config["activation"],
+    )
+    model.load_state_dict(checkpoint["model_state_dict"])
+    model.to(device)
+
+    optimizer = optimizer_func(model.parameters())
+    optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+
+    print(f"=> Model loaded from {path}")
+    return model, optimizer
+
+
 def train_classifier(
     model: FFNN,
     train_data: DataLoader,
@@ -54,8 +105,10 @@ def train_classifier(
     epochs: int,
     optimizer: optim.Optimizer,
     loss_fn: nn.Module,
-) -> FFNN:
+    scheduler,
+) -> tuple[FFNN, float]:
     train_losses = dict()
+
     model.to(device)
 
     print("=> Starting training")
@@ -64,8 +117,8 @@ def train_classifier(
         model.train()
         epoch_losses = []
 
-        for X, y in train_data:
-            X, y = X.to(device), y.to(device)
+        for X_, y_ in train_data:
+            X, y = X_.to(device), y_.to(device)
             y, damage = y[:, 0], y[:, 1]
 
             optimizer.zero_grad()
@@ -79,6 +132,8 @@ def train_classifier(
             loss.backward()
 
             optimizer.step()
+            if scheduler.type() == "OneCycleLR":
+                scheduler.step()
 
             epoch_losses.append(loss.detach().item())
 
@@ -88,22 +143,38 @@ def train_classifier(
         print(
             f"=> epoch: {epoch + 1}, loss: {mean_train_loss:.4f}, duration: {elapsed}"
         )
-        metrics_train = evaluate_classifier(model, train_data, loss_fn)
-        metrics_test = evaluate_classifier(model, test_data, loss_fn)
+        metrics_train = evaluate_classifier(model, train_data, loss_fn, "train", epoch)
+        metrics_test = evaluate_classifier(model, test_data, loss_fn, "test", epoch)
         metrics.print_metrics_comp(metrics_train, metrics_test)
+
+        # scheduler.step(metrics_test["loss"])
 
         elapsed = time.time() - start_time
         print(f"-- train and test duration: {elapsed}")
         print("\n" + "-" * 50 + "\n")
-    return model
+
+        save_model(model, optimizer, f"models/model_epoch_{epoch + 1}.pth")
+
+    metrics_test = evaluate_classifier(model, test_data, loss_fn, "final")
+
+    print("save model")
+    save_model(model, optimizer, "models/model_final.pth")
+    return model, metrics_test["Bewertung"]
 
 
-def evaluate_classifier(model: nn.Module, data_loader: DataLoader, loss_fn):
+def evaluate_classifier(
+    model: nn.Module,
+    data_loader: DataLoader,
+    loss_fn,
+    name: str,
+    epoch: int = -1,
+):
     model.eval()
     all_preds = []
     all_labels = []
     all_damages = []
     all_losses = []
+    all_probs = []
 
     with torch.no_grad():
         for X, y in data_loader:
@@ -121,6 +192,7 @@ def evaluate_classifier(model: nn.Module, data_loader: DataLoader, loss_fn):
             predicted = (probs > 0.5).long().view(-1)
 
             all_preds.append(predicted.cpu().numpy())
+            all_probs.append(probs.cpu().numpy())
             all_labels.append(y.long().cpu().numpy())
             all_damages.append(damage)
             all_losses.append(loss.cpu().item())
@@ -129,15 +201,13 @@ def evaluate_classifier(model: nn.Module, data_loader: DataLoader, loss_fn):
     preds = np.concatenate(all_preds, axis=0)
     labels = np.concatenate(all_labels, axis=0)
     damages = np.concatenate(all_damages, axis=0)
+    probs = np.concatenate(all_probs, axis=0)
 
-    bew = metrics.bewertung(preds, labels, damages)
+    metrics.propability_histogram(probs, labels, name, epoch, bins=20)
+
+    bew = metrics.bewertung(probs, preds, labels, damages)
     bew["loss"] = loss
     return bew
-
-
-def l1_regularization(model, lambda_l1=1e-5):
-    l1_norm = sum(p.abs().sum() for p in model.parameters() if p.requires_grad)
-    return lambda_l1 * l1_norm
 
 
 def train_regression(
@@ -162,7 +232,7 @@ def train_regression(
             optimizer.zero_grad()
 
             yhat = model(X)
-            loss = loss_fn(yhat.view(-1), y) + l1_regularization(model, lambda_l1=1e-2)
+            loss = loss_fn(yhat.view(-1), y)
 
             loss.backward()
 
@@ -174,15 +244,19 @@ def train_regression(
         train_losses[epoch] = mean_train_loss
         elapsed = time.time() - start_time
 
-        if epoch % 10 == 0:
+        if epoch % 1 == 0:
             print(
                 f"=> epoch: {epoch + 1}, loss: {mean_train_loss:.4f}, duration: {elapsed}"
             )
-            evaluate_regression_model(model, train_data)
+            m = evaluate_regression_model(model, train_data)
 
             elapsed = time.time() - start_time
             print(f"-- train and test duration: {elapsed}")
             print("\n" + "-" * 50 + "\n")
+
+            if m["MAE"] <= 0.15:
+                print("Stopping training early due to low MAE")
+                return model
 
     return model
 
@@ -208,3 +282,4 @@ def evaluate_regression_model(model, dataloader, device="cpu", final=False):
     m = metrics.regression(predictions, targets)
     for text, value in m.items():
         print(f"{text:<10} {value:>6.2f}")
+    return m

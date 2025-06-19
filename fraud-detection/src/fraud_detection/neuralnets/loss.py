@@ -4,7 +4,7 @@ from torch import nn
 
 
 class FocalLoss(nn.Module):
-    def __init__(self, alpha=0.25, gamma=2, pos_weight=None):
+    def __init__(self, alpha:float=0.25, gamma:float =2.0, pos_weight=None):
         super(FocalLoss, self).__init__()
         self.pos_weight = (
             pos_weight if pos_weight else torch.tensor([4.0], dtype=torch.float)

@@ -3,17 +3,6 @@ from pathlib import Path
 import polars as pl
 import polars.selectors as cs
 
-drop_features = [
-    "cash_desk",
-    "daytime",
-    "location",
-    "month",
-    "store_id",
-    "urbanization",
-    "days_since_sco_introduction",
-]
-drop_features = []
-
 classification_features = [
     "payment_medium",
     "hour",
@@ -33,8 +22,34 @@ regression_features = [
     "has_snacks",
 ]
 
+useless_features = [
+    "max_product_price",
+    "has_positive_price_difference",
+    "has_bakery",
+    "time_to_first_scan",
+    "popularity_max",
+    "has_age_restricted",
+    "cash_desk",
+    "transaction_duration_seconds",
+    "feedback_low",
+    "feedback_middle",
+    "feedback_high",
+    "feedback_top",
+    "store_id",
+    "location",
+    "urbanization",
+    "has_voided",
+    "has_sold_by_weight",
+    "has_limited_time_offers",
+    "has_fruits_vegetables",
+    "has_missing",
+    "has_camera_detected_wrong_product",
+    "day_of_week",
+    "hour_categorical",
+]
 
-def load_data_df(path: Path, filter_has_unscanned: bool = True):
+def load_data_df(path: Path, filter_has_unscanned: bool = True, drop_features=None):
+    drop_features = drop_features or []
     df = pl.read_parquet(path).drop("transaction_id").drop(drop_features)
 
     if filter_has_unscanned:
@@ -43,8 +58,19 @@ def load_data_df(path: Path, filter_has_unscanned: bool = True):
     return df
 
 
-def load_data(path: Path, features=None, filter_has_unscanned: bool = True):
-    df = load_data_df(path, filter_has_unscanned)
+def load_pandas_data(path: Path, filter_has_unscanned: bool = True, drop_features=None):
+    df = load_data_df(path, filter_has_unscanned, drop_features=drop_features)
+    df = df.to_pandas()
+
+    X = df.drop(columns=["label", "damage"])
+    y = df[["label", "damage"]]
+    return X, y
+
+
+def load_data(
+    path: Path, features=None, filter_has_unscanned: bool = True, drop_features=None
+):
+    df = load_data_df(path, filter_has_unscanned, drop_features=drop_features)
     # targets
     y = (
         df.select(["label", "damage"])
@@ -64,8 +90,18 @@ def load_data(path: Path, features=None, filter_has_unscanned: bool = True):
     return X, y
 
 
-def load_data_np(path: Path, features=None, filter_has_unscanned: bool = True):
-    X, y = load_data(path, features=features, filter_has_unscanned=filter_has_unscanned)
+def load_data_np(
+    path: Path,
+    features=None,
+    filter_has_unscanned: bool = True,
+    drop_features=None,
+):
+    X, y = load_data(
+        path,
+        features=features,
+        filter_has_unscanned=filter_has_unscanned,
+        drop_features=drop_features,
+    )
     X, y = X.to_numpy(), y.to_numpy()
     return X, y
 

@@ -1,19 +1,24 @@
 from typing import Any
 
+import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import (
+    average_precision_score,
     confusion_matrix,
     f1_score,
+    matthews_corrcoef,
     mean_absolute_error,
     mean_squared_error,
     precision_score,
     r2_score,
     recall_score,
+    roc_auc_score,
+    roc_curve,
 )
 from sklearn.model_selection import train_test_split
 
 
-def bewertung(yhat, y, damage) -> dict[str, float]:
+def bewertung(y_probs, yhat, y, damage) -> dict[str, float]:
     assert yhat.shape == y.shape, f"shapes yhat: {y.shape} == y: {yhat.shape}"
     assert y.shape == damage.shape, f"shapes yhat: {y.shape} == y: {damage.shape}"
 
@@ -24,6 +29,9 @@ def bewertung(yhat, y, damage) -> dict[str, float]:
     metrics["precision"] = precision_score(y, yhat, zero_division=0.0)
     metrics["recall"] = recall_score(y, yhat)
     metrics["f1"] = f1_score(y, yhat)
+    metrics["mcc"] = matthews_corrcoef(y, yhat)
+    metrics["auc-pr:"] = average_precision_score(y, y_probs)
+
 
     metrics["damage_total"] = damage.sum()
 
@@ -66,8 +74,11 @@ def print_metrics_comp(train_metrics: dict[str, Any], test_metrics: dict[str, An
             pass
     print("Confusion marices:")
     for row_a, row_b in zip(train_metrics["cm"], test_metrics["cm"], strict=True):
-
-        print(" ".join(f"{x:6}" for x in row_a) + "   |   " + " ".join(f"{x:6}" for x in row_b))
+        print(
+            " ".join(f"{x:6}" for x in row_a)
+            + "   |   "
+            + " ".join(f"{x:6}" for x in row_b)
+        )
 
 
 def regression(predictions, targets):
@@ -76,3 +87,62 @@ def regression(predictions, targets):
     mae = mean_absolute_error(targets, predictions)
     r2 = r2_score(targets, predictions)
     return {"MSE": mse, "RMSE": rmse, "MAE": mae, "R2": r2}
+
+
+def propability_histogram(
+    predictions,
+    targets,
+    name: str,
+    epoch: int = -1,
+    bins=50,
+):
+    plt.figure(figsize=(10, 6))
+    plt.hist(
+        predictions[targets == 0],
+        bins=bins,
+        alpha=0.5,
+        label="Normal",
+        color="blue",
+        log=True,
+    )
+    plt.hist(
+        predictions[targets == 1],
+        bins=bins,
+        alpha=0.5,
+        label="Fraud",
+        color="red",
+        log=True,
+    )
+    plt.xlabel("Predicted Probability")
+    plt.ylabel("Frequency")
+    plt.title("Histogram of Predicted Probabilities " + name)
+    plt.legend()
+    epochstr = f"epoch_{epoch}" if epoch != -1 else "final"
+    plt.savefig(f"plots/clf_probability_histogram_{name}_{epochstr}.png")
+    plt.close()
+
+
+def plot_roc_curve(
+    preds,
+    targets,
+    name: str,
+    epoch: int = -1,
+):
+    # Compute the ROC curve
+    fpr, tpr, _ = roc_curve(targets, preds)
+
+    # Compute the AUC score (optional, but useful)
+    roc_auc = roc_auc_score(targets, preds)
+
+    # Plot the ROC curve
+    plt.figure(figsize=(10, 6))
+    plt.plot(fpr, tpr, color="blue", label=f"ROC curve (AUC = {roc_auc:.2f})")
+    plt.plot([0, 1], [0, 1], color="gray", linestyle="--")  # Diagonal line
+    plt.xlabel("False Positive Rate")
+    plt.ylabel("True Positive Rate")
+    plt.title("Receiver Operating Characteristic (ROC) Curve")
+    plt.legend(loc="lower right")
+    plt.grid()
+    epochstr = f"epoch_{epoch}" if epoch != -1 else "final"
+    plt.savefig(f"plots/clf_roc_{name}_{epochstr}.png")
+    plt.close()
