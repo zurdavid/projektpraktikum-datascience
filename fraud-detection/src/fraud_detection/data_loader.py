@@ -22,6 +22,31 @@ regression_features = [
     "has_snacks",
 ]
 
+useless_features = [
+    "max_product_price",
+    "has_positive_price_difference",
+    "has_bakery",
+    "time_to_first_scan",
+    "popularity_max",
+    "has_age_restricted",
+    "cash_desk",
+    "transaction_duration_seconds",
+    "feedback_low",
+    "feedback_middle",
+    "feedback_high",
+    "feedback_top",
+    "store_id",
+    "location",
+    "urbanization",
+    "has_voided",
+    "has_sold_by_weight",
+    "has_limited_time_offers",
+    "has_fruits_vegetables",
+    "has_missing",
+    "has_camera_detected_wrong_product",
+    "day_of_week",
+    "hour_categorical",
+]
 
 def load_data_df(path: Path, filter_has_unscanned: bool = True, drop_features=None):
     drop_features = drop_features or []
