@@ -2,6 +2,7 @@ from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
 from sklearn.metrics import (
     average_precision_score,
     confusion_matrix,
@@ -96,26 +97,26 @@ def propability_histogram(
     epoch: int = -1,
     bins=50,
 ):
-    plt.figure(figsize=(10, 6))
-    plt.hist(
+    # replace plot with seaborn
+    plt.figure(figsize=(8, 5))
+    sns.set_theme(style="whitegrid")
+    sns.histplot(
         predictions[targets == 0],
         bins=bins,
-        alpha=0.5,
+        alpha=0.8,
         label="Normal",
-        color="blue",
-        log=True,
-    )
-    plt.hist(
+        )
+    sns.histplot(
         predictions[targets == 1],
         bins=bins,
-        alpha=0.5,
+        alpha=0.4,
         label="Fraud",
         color="red",
-        log=True,
-    )
+        )
+    plt.yscale("log")
     plt.xlabel("Predicted Probability")
     plt.ylabel("Frequency")
-    plt.title("Histogram of Predicted Probabilities " + name)
+    plt.title("Predicted Fraud Probabilities by label: " + name)
     plt.legend()
     epochstr = f"epoch_{epoch}" if epoch != -1 else "final"
     plt.savefig(f"plots/clf_probability_histogram_{name}_{epochstr}.png")

@@ -30,7 +30,7 @@ def train_model(
     preds = clf.predict(X_test)
     probs = clf.predict_proba(X_test)
 
-    metrics.propability_histogram(probs, y_test[:, 0], clf.name(), bins=20)
+    metrics.propability_histogram(probs, y_test[:, 0], clf.name(), bins=25)
     metrics.plot_roc_curve(probs, y_test[:, 0], clf.name())
 
     bew = metrics.bewertung(probs, preds, y_test[:, 0], y_test[:, 1])

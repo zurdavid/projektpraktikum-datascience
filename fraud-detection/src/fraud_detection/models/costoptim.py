@@ -41,11 +41,13 @@ def plothist(d):
     plt.savefig("hist.png")
 
 
-def find_optimal_threshhold(probs, y, damage):
-    threshold = np.linspace(0.1, 1.0, 100)
+def find_optimal_threshhold(probs, y, damage, bounds=(0.1, 1.0), n_samples=100):
+    threshold = np.linspace(bounds[0], bounds[1], n_samples)
     threshold_grid = np.tile(threshold, (len(y), 1)).T
     preds = (probs > threshold_grid).astype(int)
     res = bewertung(preds, y, damage)
+    for t, b in zip(threshold, res):
+        print(f"Threshold: {t:.2f}, Bewertung: {b:.2f}")
     idx = np.argmax(res)
     threshold = threshold[idx]
     return threshold
