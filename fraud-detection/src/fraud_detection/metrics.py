@@ -3,6 +3,7 @@ from typing import Any
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import (
+    average_precision_score,
     confusion_matrix,
     f1_score,
     matthews_corrcoef,
@@ -17,7 +18,7 @@ from sklearn.metrics import (
 from sklearn.model_selection import train_test_split
 
 
-def bewertung(yhat, y, damage) -> dict[str, float]:
+def bewertung(y_probs, yhat, y, damage) -> dict[str, float]:
     assert yhat.shape == y.shape, f"shapes yhat: {y.shape} == y: {yhat.shape}"
     assert y.shape == damage.shape, f"shapes yhat: {y.shape} == y: {damage.shape}"
 
@@ -29,6 +30,8 @@ def bewertung(yhat, y, damage) -> dict[str, float]:
     metrics["recall"] = recall_score(y, yhat)
     metrics["f1"] = f1_score(y, yhat)
     metrics["mcc"] = matthews_corrcoef(y, yhat)
+    metrics["auc-pr:"] = average_precision_score(y, y_probs)
+
 
     metrics["damage_total"] = damage.sum()
 

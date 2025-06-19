@@ -90,6 +90,7 @@ def evaluate_classifier(model: nn.Module, data_loader: DataLoader, loss_fn: nn.M
     all_labels = []
     all_damages = []
     all_losses = []
+    all_probs = []
 
     with torch.no_grad():
         for X_, y_ in data_loader:
@@ -110,13 +111,15 @@ def evaluate_classifier(model: nn.Module, data_loader: DataLoader, loss_fn: nn.M
             all_labels.append(y.long().cpu().numpy())
             all_damages.append(damage)
             all_losses.append(loss.cpu().item())
+            all_probs.append(probs.cpu().numpy())
 
     loss = np.array(all_losses).mean()
     preds = np.concatenate(all_preds, axis=0)
     labels = np.concatenate(all_labels, axis=0)
     damages = np.concatenate(all_damages, axis=0)
+    probs = np.concatenate(all_probs, axis=0)
 
-    return metrics.bewertung(preds, labels, damages)
+    return metrics.bewertung(probs, preds, labels, damages)
 
 
 def train_and_eval_single_run(

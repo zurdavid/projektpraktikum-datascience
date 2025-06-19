@@ -1,8 +1,8 @@
 import numpy as np
 import torch
 from sklearn.preprocessing import RobustScaler, StandardScaler
-from torch import batch_norm, nn, optim
-from torch.utils.data import DataLoader, Sampler, TensorDataset
+from torch import nn, optim
+from torch.utils.data import DataLoader, TensorDataset
 from xgboost import XGBRegressor
 
 from fraud_detection.models.types import DamagePredictionModel, FraudDetectionModel
@@ -15,9 +15,10 @@ device = "cpu"
 
 
 class Scheduler:
-    def __init__(self, scheduler_type: str, scheduler):
+    def __init__(self, scheduler_type: str, scheduler, params: dict):
         self.scheduler_type = scheduler_type
         self.scheduler = scheduler
+        self.params = params
 
     def type(self) -> str:
         return self.scheduler_type
@@ -42,7 +43,7 @@ class NNFraudDetector(FraudDetectionModel):
         threshold=0.5,
     ):
         if scheduler is None:
-            scheduler = Scheduler("None", None)
+            scheduler = Scheduler("None", None, dict())
         self.model = model
         self._name = name
         self.loss_fn = loss_fn
@@ -79,10 +80,7 @@ class NNFraudDetector(FraudDetectionModel):
 
         if self.scheduler.type() == "OneCycleLR":
             self.scheduler.scheduler = torch.optim.lr_scheduler.OneCycleLR(
-                self.optimizer,
-                max_lr=1e-2,
-                steps_per_epoch=len(train_loader),
-                epochs=self.epochs,
+                steps_per_epoch=len(train_loader), **self.scheduler.params
             )
 
         self.model, _ = train_classifier(
@@ -205,7 +203,7 @@ class NNFraudDetectorWithDamagePrediction(FraudDetectionModel):
         y_test: np.ndarray,
     ):
         self.scaler = RobustScaler()
-        X_train = self.scaler.fit_transform(X_train)
+        X_train_t = self.scaler.fit_transform(X_train)
 
         # Xt = torch.tensor(X_train, dtype=torch.float32)
         # yt = torch.tensor(y_train, dtype=torch.float32).squeeze(1)
@@ -228,19 +226,19 @@ class NNFraudDetectorWithDamagePrediction(FraudDetectionModel):
         # self.loss_fn,
         # )
 
-        # self.model, _ = load_model("models/model_final.pth", optim.AdamW)
-        self.model, _ = load_model("models/model_epoch_10.pth", optim.AdamW)
+        self.model, _ = load_model("models/model_final.pth", optim.AdamW)
+        # self.model, _ = load_model("models/model_epoch_10.pth", optim.AdamW)
         self.model.eval()
 
-        probs = self.predict_proba(X_test).squeeze()
-        threshold = find_optimal_threshhold(probs, y_test[:, 0], y_test[:, 1])
+        probs = self.predict_proba(X_train).squeeze()
+        threshold = find_optimal_threshhold(probs, y_train[:, 0], y_train[:, 1])
         print(f"Optimal threshold for {self.name()}: {threshold}")
         # threshold = 0.5
         self.cost_function = lambda p, d: p > threshold
 
         labels = y_train[:, 0]
         damage = y_train[:, 1]
-        self.regressor.fit(X_train, damage)
+        self.regressor.fit(X_train_t, damage)
 
         # ps = self.predict_proba(X_train).squeeze()
         # ds = self.regressor.predict(X_train)
@@ -286,9 +284,35 @@ def getvanillaNN(input_size: int):
 
 
 def getNN(input_size: int):
+    inner_layers = [64, 32]
+
+    model = FFNN(input_size, 1, inner_layers, dropout=0.4)
+
+    pos_weight = torch.tensor([1.0], dtype=torch.float).to(device)
+    loss_fn = FocalLoss(alpha=0.2, gamma=1.5, pos_weight=pos_weight)
+
+    optimizer = optim.Adam(model.parameters(), lr=1e-1)
+
+    epochs = 15
+    schedular_args = {"optimizer": optimizer, "max_lr": 1e-2, "epochs": epochs}
+    scheduler = Scheduler("OneCycleLR", None, params=schedular_args)
+    batch_size = 256
+
+    return NNFraudDetector(
+        model,
+        "NN Classifier",
+        loss_fn,
+        optimizer,
+        batch_size,
+        epochs,
+        scheduler=scheduler,
+    )
+
+
+def getNN_tests(input_size: int):
     # inner_layers = [64, 16, 8]
     # inner_layers = [64, 16]
-    inner_layers = [64]
+    inner_layers = [64, 32]
     # inner_layers = [64, 16]
     # inner_layers = [32, 8, 4]
     # inner_layers = [128, 64, 16, 16]
@@ -301,13 +325,14 @@ def getNN(input_size: int):
     # loss_fn = torch.nn.BCEWithLogitsLoss(pos_weight=pos_weight.to(device))
     # loss_fn = PenalizedLoss(pos_weight=pos_weight, false_positive_penalty=4.0)
     # loss_fn = WertkaufLoss(base_loss_weight=0.01, fp_penalty_weight=30.0, malus=100)
-    loss_fn = FocalLoss(alpha=0.1, gamma=2.0, pos_weight=pos_weight)
+    loss_fn = FocalLoss(alpha=0.2, gamma=1.5, pos_weight=pos_weight)
 
     # optimizer = optim.AdamW(model.parameters(), lr=1e-2, weight_decay=1e-5)
     optimizer = optim.Adam(model.parameters(), lr=1e-1)
-    scheduler = Scheduler("OneCycleLR", None)
     batch_size = 256
-    epochs = 12 
+    epochs = 15
+    scheduler_args = {"optimizer": optimizer, "max_lr": 1e-2, "epochs": epochs}
+    scheduler = Scheduler("OneCycleLR", None, params=scheduler_args)
 
     return NNFraudDetector(
         model,

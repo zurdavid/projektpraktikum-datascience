@@ -3,7 +3,10 @@ from catboost import CatBoostClassifier
 from lightgbm import LGBMClassifier
 from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.preprocessing import RobustScaler, StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import PolynomialFeatures, RobustScaler, StandardScaler
+from sklearn.tree import DecisionTreeClassifier
+from sqlalchemy.sql.operators import op
 from xgboost import XGBClassifier
 
 from fraud_detection.models.costoptim import find_optimal_threshhold
@@ -17,10 +20,12 @@ class FraudDetector(FraudDetectionModel):
         name: str,
         clf,
         threshold: float = 0.5,
+        optimize_threshold: bool = False,
     ):
         self._name = name
         self.clf = clf
         self.threshold = threshold
+        self.optimize_threshold = optimize_threshold
 
     def name(self) -> str:
         return self._name
@@ -35,10 +40,10 @@ class FraudDetector(FraudDetectionModel):
         # fit only on label
         self.clf.fit(X_train, y_train[:, 0])
 
-        probs = self.clf.predict_proba(X_test)[:, 1]
-        threshold = find_optimal_threshhold(probs, y_test[:, 0], y_test[:, 1])
-        print(f"Optimal threshold for {self.name()}: {threshold}")
-        self.threshold = threshold
+        if self.optimize_threshold:
+            probs = self.clf.predict_proba(X_train)[:, 1]
+            threshold = find_optimal_threshhold(probs, y_train[:, 0], y_train[:, 1])
+            self.threshold = threshold
 
     def predict(self, X: np.ndarray) -> np.ndarray:
         y_probs = self.clf.predict_proba(X)[:, 1]
@@ -49,43 +54,15 @@ class FraudDetector(FraudDetectionModel):
         return self.clf.predict_proba(X)[:, 1]
 
 
-class LinearFraudDetector(FraudDetector):
-    def __init__(
-        self,
-        name: str,
-        clf,
-        threshold: float = 0.5,
-    ):
-        self._name = name
-        self.clf = clf
-        self.threshold = threshold
+class NoScaler:
+    def fit() -> None:
+        pass
 
-    def fit(
-        self,
-        X_train: np.ndarray,
-        y_train: np.ndarray,
-        X_test: np.ndarray,
-        y_test: np.ndarray,
-    ):
-        # fit only on label
-        self.scaler = RobustScaler()
-        X_train = self.scaler.fit_transform(X_train)
+    def fit_transform(self, X: np.ndarray, _) -> np.ndarray:
+        return X
 
-        self.clf.fit(X_train, y_train[:, 0])
-
-        probs = self.clf.predict_proba(X_test)[:, 1]
-        threshold = find_optimal_threshhold(probs, y_test[:, 0], y_test[:, 1])
-        print(f"Optimal threshold for {self.name()}: {threshold}")
-        self.threshold = threshold
-
-    def predict(self, X: np.ndarray) -> np.ndarray:
-        y_probs = self.predict_proba(X)
-        preds = (y_probs > self.threshold).astype(int)
-        return preds
-
-    def predict_proba(self, X: np.ndarray) -> np.ndarray:
-        Xt = self.scaler.transform(X)
-        return self.clf.predict_proba(Xt)[:, 1]
+    def transform(self, X: np.ndarray) -> np.ndarray:
+        return X
 
 
 def get_lin_reg() -> FraudDetectionModel:
@@ -147,15 +124,23 @@ def get_catboost() -> FraudDetectionModel:
 
 
 def get_logistic_regression() -> FraudDetectionModel:
-    clf = LogisticRegression(max_iter=1000, class_weight="balanced", solver="liblinear")
-    # clf = LogisticRegression(
-    # penalty="l2",
-    # C=1.0,
-    # solver="lbfgs",
-    # max_iter=1000,
-    # class_weight="balanced",
-    # )
-    return LinearFraudDetector("Logistic Regression", clf, threshold=0.95)
+    name = "Logistic Regression"
+    clf = LogisticRegression(max_iter=5000, class_weight="balanced", solver="saga")
+    clf = Pipeline(
+        [
+            ("scaler", RobustScaler()),
+            (name, clf),
+        ]
+    )
+    return FraudDetector("Logistic Regression", clf, optimize_threshold=True)
+
+
+def get_decsion_tree() -> FraudDetectionModel:
+    clf = DecisionTreeClassifier(
+        max_depth=8,
+        class_weight="balanced",
+    )
+    return FraudDetector("Decision Tree Classifier", clf, optimize_threshold=True)
 
 
 def get_random_forest() -> FraudDetectionModel:
@@ -164,4 +149,4 @@ def get_random_forest() -> FraudDetectionModel:
         max_depth=8,
         class_weight="balanced",
     )
-    return FraudDetector("Random Forest Classifier", clf, threshold=0.75)
+    return FraudDetector("Random Forest Classifier", clf, optimize_threshold=True)

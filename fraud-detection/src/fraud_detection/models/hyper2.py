@@ -28,7 +28,8 @@ def objective(trial, X_train, X_test, y_train, y_test):
 
     clf.fit(X_train, y_train[:, 0])
     preds = clf.predict(X_test)
-    bew = metrics.bewertung(preds, y_test[:, 0], y_test[:, 1])
+    probs = clf.predict_proba(X_test)
+    bew = metrics.bewertung(probs, preds, y_test[:, 0], y_test[:, 1])
     return -bew["Bewertung"]
 
 

@@ -33,6 +33,15 @@ def load_data_df(path: Path, filter_has_unscanned: bool = True, drop_features=No
     return df
 
 
+def load_pandas_data(path: Path, filter_has_unscanned: bool = True, drop_features=None):
+    df = load_data_df(path, filter_has_unscanned, drop_features=drop_features)
+    df = df.to_pandas()
+
+    X = df.drop(columns=["label", "damage"])
+    y = df[["label", "damage"]]
+    return X, y
+
+
 def load_data(
     path: Path, features=None, filter_has_unscanned: bool = True, drop_features=None
 ):

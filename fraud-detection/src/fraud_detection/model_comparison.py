@@ -33,13 +33,13 @@ def train_model(
     metrics.propability_histogram(probs, y_test[:, 0], clf.name(), bins=20)
     metrics.plot_roc_curve(probs, y_test[:, 0], clf.name())
 
-    bew = metrics.bewertung(preds, y_test[:, 0], y_test[:, 1])
+    bew = metrics.bewertung(probs, preds, y_test[:, 0], y_test[:, 1])
     metrics.print_metrics(bew)
 
 
 def train_classifier_with_cross_validation(
     name: str,
-    clf: FraudDetectionModel,
+    clf_creator,
     X: np.ndarray,
     targets: np.ndarray,
     skf: RepeatedStratifiedKFold,
@@ -49,24 +49,39 @@ def train_classifier_with_cross_validation(
     model_metrics = []
 
     for i, (train_idx, test_idx) in enumerate(skf.split(X, targets[:, 0])):
+        # Create a new instance of the classifier for each fold
+        clf = clf_creator()
         print(f"Round {i}")
         clf.fit(X[train_idx], targets[train_idx], X[test_idx], targets[test_idx])
+
+        probs = clf.predict_proba(X[test_idx])
         preds = clf.predict(X[test_idx])
 
         labels = targets[:, 0]
         damage = targets[:, 1]
-        bew = metrics.bewertung(preds, labels[test_idx], damage[test_idx])
+        bew = metrics.bewertung(probs, preds, labels[test_idx], damage[test_idx])
         model_metrics.append(bew)
 
-    avg_metrics = dict()
+    metrics_dict = dict()
     for metric_name in [k for k in model_metrics[0].keys() if k != "cm"]:
-        avg_metrics[metric_name] = np.mean([m[metric_name] for m in model_metrics])
-    avg_metrics["cm"] = np.stack([m["cm"] for m in model_metrics], axis=2).mean(axis=2)
-    return avg_metrics
+        metrics_dict[metric_name + "_mean"] = np.mean(
+            [m[metric_name] for m in model_metrics]
+        )
+        metrics_dict[metric_name + "_max"] = np.max(
+            [m[metric_name] for m in model_metrics]
+        )
+        metrics_dict[metric_name + "_min"] = np.min(
+            [m[metric_name] for m in model_metrics]
+        )
+        metrics_dict[metric_name + "_var"] = np.var(
+            [m[metric_name] for m in model_metrics]
+        )
+    metrics_dict["cm"] = np.stack([m["cm"] for m in model_metrics], axis=2).mean(axis=2)
+    return metrics_dict
 
 
 def compare_models(
-    models: Sequence[FraudDetectionModel],
+    models,
     datapath: Path,
     n_splits: int = 5,
     n_repeats: int = 1,
@@ -82,8 +97,7 @@ def compare_models(
     )
 
     model_metrics = dict()
-    for model in models:
-        name = model.name()
+    for name, model in models:
         model_metrics[name] = train_classifier_with_cross_validation(
             name, model, X, targets, skf
         )

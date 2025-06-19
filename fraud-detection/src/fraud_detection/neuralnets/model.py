@@ -205,7 +205,7 @@ def evaluate_classifier(
 
     metrics.propability_histogram(probs, labels, name, epoch, bins=20)
 
-    bew = metrics.bewertung(preds, labels, damages)
+    bew = metrics.bewertung(probs, preds, labels, damages)
     bew["loss"] = loss
     return bew
 
