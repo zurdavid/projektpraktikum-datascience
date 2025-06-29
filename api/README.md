@@ -40,7 +40,7 @@ gain_true_positive = 5.0
 - Wether discounts on certain categories should be handlet as fraud in every case.
 ```toml
 [discounts]
-enable_excluded_categories = fals
+enable_excluded_categories = false
 ```
 
 - If `enable_excluded_categories` is set to `true`, the categories, which are not eligible for discounts, can be defined per store as follows:
