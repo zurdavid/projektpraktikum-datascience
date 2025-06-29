@@ -1,4 +1,6 @@
-# projektpraktikum-datascience
+# Projektpraktikum Data Science in der Anwendung - SoSe 2025
+
+**Fraud detection at self-checkouts in retail**
 
 ## Aufbau des Repositories
 
