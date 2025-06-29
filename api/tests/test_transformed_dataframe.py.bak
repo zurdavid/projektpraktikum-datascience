@@ -1,0 +1,134 @@
+import polars as pl
+
+df_damage = pl.scan_parquet("transformed_damage_first.parquet")
+df_label = pl.scan_parquet("transformed_label_first.parquet")
+df_both = pl.scan_parquet("transformed_label_and_damage.parquet")
+
+cols_damage_list = df_damage.collect_schema().names()
+cols_label_list = df_label.collect_schema().names()
+cols_both_list = df_both.collect_schema().names()
+
+cols_damage = set(cols_damage_list)
+cols_label = set(cols_label_list)
+cols_both = set(cols_both_list)
+
+expected_cols = {
+    "transaction_id",
+    "calculated_price_difference",
+    "cash_desk",
+    "day_of_week",
+    "days_since_sco_introduction",
+    "daytime",
+    "feedback_categorical",
+    "feedback_high",
+    "feedback_low",
+    "feedback_middle",
+    "feedback_top",
+    "has_age_restricted",
+    "has_alcohol",
+    "has_bakery",
+    "has_beverages",
+    "has_camera_detected_wrong_product",
+    "has_camera_detected_wrong_product_high_certainty",
+    "has_convenience",
+    "has_dairy",
+    "has_feedback",
+    "has_frozen_goods",
+    "has_fruits_vegetables",
+    "has_fruits_vegetables_pieces",
+    "has_household",
+    "has_limited_time_offers",
+    "has_long_shelf_life",
+    "has_missing",
+    "has_personal_care",
+    "has_positive_price_difference",
+    "has_snacks",
+    "has_sold_by_weight",
+    "has_tobacco",
+    "has_voided",
+    "has_unscanned",
+    "hour",
+    "hour_categorical",
+    "location",
+    "max_product_price",
+    "max_time_between_scans",
+    "mean_time_between_scans",
+    "month",
+    "n_age_restricted",
+    "n_lines",
+    "n_sold_by_weight",
+    "n_voided",
+    "payment_medium",
+    "popularity_max",
+    "popularity_min",
+    "store_id",
+    "time_from_last_scan_to_end",
+    "time_to_first_scan",
+    "total_amount",
+    "transaction_duration_seconds",
+    "urbanization",
+}
+
+
+def test_first_column():
+    assert cols_damage_list[0] == "damage"
+    assert cols_label_list[0] == "label"
+
+    assert cols_both_list[0] == "label"
+    assert cols_both_list[1] == "damage"
+
+
+def test_contains_correct_targets():
+    assert "label" in cols_label
+    assert "label" not in cols_damage
+
+    assert "damage" in cols_damage
+    assert "damage" not in cols_label
+
+
+def test_same_length():
+    assert len(cols_damage) == len(cols_label)
+    assert len(cols_both) == len(cols_damage) + 1
+
+
+def test_contains_expected_columns():
+    diff_label_first = expected_cols.symmetric_difference(cols_label)
+    assert diff_label_first == {"label"}, diff_label_first
+    diff_damage_first = expected_cols.symmetric_difference(cols_damage)
+    assert diff_damage_first == {"damage"}
+
+    diff_both = expected_cols.symmetric_difference(cols_both)
+    assert diff_both == {"label", "damage"}
+
+
+def test_n_unscanned():
+    for df in [df_damage, df_label, df_both]:
+        n_unscanned = (
+            df.filter(pl.col("has_unscanned")).select(pl.len()).collect()[0, 0]
+        )
+        assert n_unscanned == 377
+
+
+N_FRAUD = 4655
+N_TOTAL = 148024
+
+
+def test_number_of_frauds():
+    n_fraud = (
+        df_both.filter(pl.col("label") == "FRAUD").select(pl.len()).collect()[0, 0]
+    )
+    assert n_fraud == N_FRAUD
+
+
+def test_number_of_normals():
+    n_normal = (
+        df_both.filter(pl.col("label") == "NORMAL").select(pl.len()).collect()[0, 0]
+    )
+    assert n_normal == N_TOTAL - N_FRAUD
+
+
+def test_number_of_transactions():
+    n_both = df_both.select(pl.len()).collect()[0, 0]
+    n_label = df_label.select(pl.len()).collect()[0, 0]
+    n_damage = df_damage.select(pl.len()).collect()[0, 0]
+    assert n_both == n_label == n_damage == N_TOTAL

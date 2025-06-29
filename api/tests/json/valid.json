@@ -1,0 +1,83 @@
+{
+  "transaction_header": {
+    "store_id": "3fffea06-686f-42bd-8362-818af86b48a9",
+    "cash_desk": 1,
+    "transaction_start": "2023-03-25T21:08:45",
+    "transaction_end": "2023-03-25T21:09:22",
+    "total_amount": 63.78,
+    "payment_medium": "CREDIT_CARD",
+    "customer_feedback": null
+  },
+  "transaction_lines": [
+    {
+      "id": 1,
+      "product_id": "fd14ddcc-b1e0-44e7-9b70-e442c5459efc",
+      "timestamp": "2023-03-25T21:08:50",
+      "pieces_or_weight": 1.0,
+      "sales_price": 1.19,
+      "was_voided": false,
+      "camera_product_similar": true,
+      "camera_certainty": 1.0
+    },
+    {
+      "id": 2,
+      "product_id": "b20e7046-e888-43de-8cb9-282c56a8f275",
+      "timestamp": "2023-03-25T21:08:52",
+      "pieces_or_weight": 12.0,
+      "sales_price": 21.48,
+      "was_voided": false,
+      "camera_product_similar": true,
+      "camera_certainty": 1.0
+    },
+    {
+      "id": 3,
+      "product_id": "f7d33327-1e3b-4736-a215-8a98d4bd72e1",
+      "timestamp": "2023-03-25T21:08:54",
+      "pieces_or_weight": 4.0,
+      "sales_price": 8.76,
+      "was_voided": false,
+      "camera_product_similar": false,
+      "camera_certainty": 0.9343288918358026
+    },
+    {
+      "id": 4,
+      "product_id": "3247cc82-89d5-4360-aa76-54baa1cc8680",
+      "timestamp": "2023-03-25T21:08:57",
+      "pieces_or_weight": 5.0,
+      "sales_price": 19.95,
+      "was_voided": false,
+      "camera_product_similar": true,
+      "camera_certainty": 0.935834717109529
+    },
+    {
+      "id": 5,
+      "product_id": "327d8fd4-4092-44a8-8999-fd12a2aa5e44",
+      "timestamp": "2023-03-25T21:08:59",
+      "pieces_or_weight": 2.0,
+      "sales_price": 3.58,
+      "was_voided": false,
+      "camera_product_similar": true,
+      "camera_certainty": 1.0
+    },
+    {
+      "id": 6,
+      "product_id": "d9602bbb-0b6c-4259-b14f-c4b03b4d723d",
+      "timestamp": "2023-03-25T21:09:11",
+      "pieces_or_weight": 8.0,
+      "sales_price": 3.92,
+      "was_voided": false,
+      "camera_product_similar": true,
+      "camera_certainty": 1.0
+    },
+    {
+      "id": 7,
+      "product_id": "b997b6f0-fe78-4f34-a490-dcb8ff8c08a6",
+      "timestamp": "2023-03-25T21:09:15",
+      "pieces_or_weight": 10.0,
+      "sales_price": 4.9,
+      "was_voided": false,
+      "camera_product_similar": true,
+      "camera_certainty": 1.0
+    }
+  ]
+}

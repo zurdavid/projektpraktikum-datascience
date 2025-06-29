@@ -1,0 +1,79 @@
+[model]
+classifier_path = "models/xgb_fraud_classifier.joblib"
+regressor_path = "models/xgb_damage_regressor.joblib"
+encoder_path =  "models/encoder.json"
+
+[costfunction]
+cost_false_positive = 10.0
+gain_true_positive = 5.0
+
+[discounts]
+enable_excluded_categories = false
+
+# Hier könnnen pro Filiale Produktkategorien definiert werden, die von Rabatten
+# ausgeschlossen sind. Es wird dann immer ein Fraud-Verdacht gemeldet, wenn Rabatt
+# auf ein Produkt dieser Kategorie ausgewählt wird.
+[[stores]]
+id = "3fffea06-686f-42bd-8362-818af86b48a9"
+categories_excluded_from_discount = [ 
+  "PERSONAL_CARE",
+  "LONG_SHELF_LIFE",
+  "FROZEN_GOODS",
+  "BEVERAGES",
+  "ALCOHOL",
+  "SNACKS",
+  "HOUSEHOLD",
+  "TOBACCO"
+]
+
+[[stores]]
+id = "46e6da32-f4b0-40f3-ada7-fc6ca81ed85d"
+categories_excluded_from_discount = [ 
+  "PERSONAL_CARE",
+  "LONG_SHELF_LIFE",
+  "FROZEN_GOODS",
+  "BEVERAGES",
+  "ALCOHOL",
+  "SNACKS",
+  "HOUSEHOLD",
+  "TOBACCO"
+]
+
+[[stores]]
+id = "cd833b6b-0666-42df-b538-6bb1f189b66e"
+categories_excluded_from_discount = [ 
+  "PERSONAL_CARE",
+  "LONG_SHELF_LIFE",
+  "FROZEN_GOODS",
+  "BEVERAGES",
+  "ALCOHOL",
+  "SNACKS",
+  "HOUSEHOLD",
+  "TOBACCO"
+]
+
+[[stores]]
+id = "6a7406ec-4ebb-4df7-83ce-9528663e553e"
+categories_excluded_from_discount = [ 
+  "PERSONAL_CARE",
+  "LONG_SHELF_LIFE",
+  "FROZEN_GOODS",
+  "BEVERAGES",
+  "ALCOHOL",
+  "SNACKS",
+  "HOUSEHOLD",
+  "TOBACCO"
+]
+
+[[stores]]
+id = "581831fc-6a03-4e38-9025-0a889b7fe542"
+categories_excluded_from_discount = [ 
+  "PERSONAL_CARE",
+  "LONG_SHELF_LIFE",
+  "FROZEN_GOODS",
+  "BEVERAGES",
+  "ALCOHOL",
+  "SNACKS",
+  "HOUSEHOLD",
+  "TOBACCO"
+]

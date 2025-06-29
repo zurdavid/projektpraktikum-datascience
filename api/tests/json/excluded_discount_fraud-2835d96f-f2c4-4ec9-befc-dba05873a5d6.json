@@ -1,0 +1,289 @@
+{
+    "transaction_header": {
+        "id": "2835d96f-f2c4-4ec9-befc-dba05873a5d6",
+        "store_id": "cd833b6b-0666-42df-b538-6bb1f189b66e",
+        "cash_desk": 1,
+        "transaction_start": "2023-05-22T20:02:57",
+        "transaction_end": "2023-05-22T20:05:30",
+        "total_amount": 178.56,
+        "payment_medium": "CASH",
+        "customer_feedback": null
+    },
+    "transaction_lines": [
+        {
+            "id": 1,
+            "transaction_id": "2835d96f-f2c4-4ec9-befc-dba05873a5d6",
+            "product_id": "4b7d7e9a-8400-4cb6-93b3-000ec26c3573",
+            "timestamp": "2023-05-22T20:03:07",
+            "pieces_or_weight": 8.0,
+            "sales_price": 10.02,
+            "was_voided": false,
+            "camera_product_similar": true,
+            "camera_certainty": 1.0
+        },
+        {
+            "id": 2,
+            "transaction_id": "2835d96f-f2c4-4ec9-befc-dba05873a5d6",
+            "product_id": "04426e73-68c3-41f4-ba34-6550c1288fd1",
+            "timestamp": "2023-05-22T20:03:10",
+            "pieces_or_weight": 3.0,
+            "sales_price": 3.76,
+            "was_voided": false,
+            "camera_product_similar": true,
+            "camera_certainty": 1.0
+        },
+        {
+            "id": 3,
+            "transaction_id": "2835d96f-f2c4-4ec9-befc-dba05873a5d6",
+            "product_id": "a5dd1a6b-48cf-41cd-a489-570a044f5c6b",
+            "timestamp": "2023-05-22T20:03:11",
+            "pieces_or_weight": 9.0,
+            "sales_price": 2.46,
+            "was_voided": false,
+            "camera_product_similar": true,
+            "camera_certainty": 0.9623840237228553
+        },
+        {
+            "id": 4,
+            "transaction_id": "2835d96f-f2c4-4ec9-befc-dba05873a5d6",
+            "product_id": "c1046a62-b2f5-44b1-9f31-e0c57736796e",
+            "timestamp": "2023-05-22T20:03:23",
+            "pieces_or_weight": 7.0,
+            "sales_price": 4.85,
+            "was_voided": false,
+            "camera_product_similar": true,
+            "camera_certainty": 0.9316538828047282
+        },
+        {
+            "id": 5,
+            "transaction_id": "2835d96f-f2c4-4ec9-befc-dba05873a5d6",
+            "product_id": "16249c1b-fe83-4f7b-b7d4-8f69b87856d3",
+            "timestamp": "2023-05-22T20:03:35",
+            "pieces_or_weight": 6.0,
+            "sales_price": 2.94,
+            "was_voided": false,
+            "camera_product_similar": true,
+            "camera_certainty": 1.0
+        },
+        {
+            "id": 6,
+            "transaction_id": "2835d96f-f2c4-4ec9-befc-dba05873a5d6",
+            "product_id": "dccf5983-6677-4687-8968-9bb27940cc78",
+            "timestamp": "2023-05-22T20:03:44",
+            "pieces_or_weight": 1.0,
+            "sales_price": 2.23,
+            "was_voided": false,
+            "camera_product_similar": true,
+            "camera_certainty": 1.0
+        },
+        {
+            "id": 7,
+            "transaction_id": "2835d96f-f2c4-4ec9-befc-dba05873a5d6",
+            "product_id": "17e8a437-da8e-4e38-b309-649299547158",
+            "timestamp": "2023-05-22T20:03:46",
+            "pieces_or_weight": 1.0,
+            "sales_price": 1.95,
+            "was_voided": false,
+            "camera_product_similar": true,
+            "camera_certainty": 1.0
+        },
+        {
+            "id": 8,
+            "transaction_id": "2835d96f-f2c4-4ec9-befc-dba05873a5d6",
+            "product_id": "739717b4-832c-4f1a-a9b1-1272ef7f8bb5",
+            "timestamp": "2023-05-22T20:03:51",
+            "pieces_or_weight": 2.0,
+            "sales_price": 2.38,
+            "was_voided": false,
+            "camera_product_similar": true,
+            "camera_certainty": 0.8651444122602746
+        },
+        {
+            "id": 9,
+            "transaction_id": "2835d96f-f2c4-4ec9-befc-dba05873a5d6",
+            "product_id": "ae775056-45c3-4c2b-be42-15fc334db032",
+            "timestamp": "2023-05-22T20:04:00",
+            "pieces_or_weight": 33.0,
+            "sales_price": 41.35,
+            "was_voided": false,
+            "camera_product_similar": true,
+            "camera_certainty": 1.0
+        },
+        {
+            "id": 10,
+            "transaction_id": "2835d96f-f2c4-4ec9-befc-dba05873a5d6",
+            "product_id": "7640d79c-5bbf-40ba-9c16-23ef62a9c242",
+            "timestamp": "2023-05-22T20:04:02",
+            "pieces_or_weight": 1.0,
+            "sales_price": 0.49,
+            "was_voided": false,
+            "camera_product_similar": true,
+            "camera_certainty": 1.0
+        },
+        {
+            "id": 11,
+            "transaction_id": "2835d96f-f2c4-4ec9-befc-dba05873a5d6",
+            "product_id": "c7a820fd-8c9e-4ca9-b22c-789bfa5046de",
+            "timestamp": "2023-05-22T20:04:07",
+            "pieces_or_weight": 8.0,
+            "sales_price": 14.32,
+            "was_voided": false,
+            "camera_product_similar": true,
+            "camera_certainty": 0.8200805593381528
+        },
+        {
+            "id": 12,
+            "transaction_id": "2835d96f-f2c4-4ec9-befc-dba05873a5d6",
+            "product_id": "8399acb8-8f68-473d-b645-b03bb78775c1",
+            "timestamp": "2023-05-22T20:04:09",
+            "pieces_or_weight": 3.0,
+            "sales_price": 7.17,
+            "was_voided": false,
+            "camera_product_similar": true,
+            "camera_certainty": 0.6202207457599516
+        },
+        {
+            "id": 13,
+            "transaction_id": "2835d96f-f2c4-4ec9-befc-dba05873a5d6",
+            "product_id": "8e6188e0-392d-4892-8ea4-1af2bfbc12cc",
+            "timestamp": "2023-05-22T20:04:11",
+            "pieces_or_weight": 1.0,
+            "sales_price": 4.19,
+            "was_voided": false,
+            "camera_product_similar": false,
+            "camera_certainty": 0.38363428259162563
+        },
+        {
+            "id": 14,
+            "transaction_id": "2835d96f-f2c4-4ec9-befc-dba05873a5d6",
+            "product_id": "014631c2-94ad-4080-b394-43dba9e19534",
+            "timestamp": "2023-05-22T20:04:20",
+            "pieces_or_weight": 5.0,
+            "sales_price": 5.95,
+            "was_voided": false,
+            "camera_product_similar": true,
+            "camera_certainty": 0.9255652512487681
+        },
+        {
+            "id": 15,
+            "transaction_id": "2835d96f-f2c4-4ec9-befc-dba05873a5d6",
+            "product_id": "37c57f04-3273-4e7c-9bb7-f956e7d987b6",
+            "timestamp": "2023-05-22T20:04:27",
+            "pieces_or_weight": 7.0,
+            "sales_price": 2.03,
+            "was_voided": false,
+            "camera_product_similar": true,
+            "camera_certainty": 1.0
+        },
+        {
+            "id": 16,
+            "transaction_id": "2835d96f-f2c4-4ec9-befc-dba05873a5d6",
+            "product_id": "25ed83ef-d04b-4e90-8edd-5d78f3641749",
+            "timestamp": "2023-05-22T20:04:28",
+            "pieces_or_weight": 4.0,
+            "sales_price": 1.96,
+            "was_voided": false,
+            "camera_product_similar": true,
+            "camera_certainty": 0.9149528148775184
+        },
+        {
+            "id": 17,
+            "transaction_id": "2835d96f-f2c4-4ec9-befc-dba05873a5d6",
+            "product_id": "6d1d132c-b4a6-4b71-977a-e71e41523c0c",
+            "timestamp": "2023-05-22T20:04:30",
+            "pieces_or_weight": 1.0,
+            "sales_price": 1.49,
+            "was_voided": false,
+            "camera_product_similar": true,
+            "camera_certainty": 1.0
+        },
+        {
+            "id": 18,
+            "transaction_id": "2835d96f-f2c4-4ec9-befc-dba05873a5d6",
+            "product_id": "647f3640-506a-4571-b914-6d3b2b0c69f6",
+            "timestamp": "2023-05-22T20:04:33",
+            "pieces_or_weight": 14.0,
+            "sales_price": 13.86,
+            "was_voided": false,
+            "camera_product_similar": true,
+            "camera_certainty": 1.0
+        },
+        {
+            "id": 19,
+            "transaction_id": "2835d96f-f2c4-4ec9-befc-dba05873a5d6",
+            "product_id": "b1f5627e-30c1-4d78-9f6f-ddddf76db5f2",
+            "timestamp": "2023-05-22T20:04:41",
+            "pieces_or_weight": 15.0,
+            "sales_price": 20.85,
+            "was_voided": false,
+            "camera_product_similar": true,
+            "camera_certainty": 1.0
+        },
+        {
+            "id": 20,
+            "transaction_id": "2835d96f-f2c4-4ec9-befc-dba05873a5d6",
+            "product_id": "4f429c71-111a-44c7-bbe9-3183eb76340c",
+            "timestamp": "2023-05-22T20:04:44",
+            "pieces_or_weight": 3.0,
+            "sales_price": 7.17,
+            "was_voided": false,
+            "camera_product_similar": true,
+            "camera_certainty": 1.0
+        },
+        {
+            "id": 21,
+            "transaction_id": "2835d96f-f2c4-4ec9-befc-dba05873a5d6",
+            "product_id": "6596cc2c-212c-41a2-8d58-43fc1dfadc78",
+            "timestamp": "2023-05-22T20:04:50",
+            "pieces_or_weight": 5.0,
+            "sales_price": 6.95,
+            "was_voided": false,
+            "camera_product_similar": true,
+            "camera_certainty": 1.0
+        },
+        {
+            "id": 22,
+            "transaction_id": "2835d96f-f2c4-4ec9-befc-dba05873a5d6",
+            "product_id": "226c972b-dc2a-4529-a35a-c01dc68d0915",
+            "timestamp": "2023-05-22T20:04:57",
+            "pieces_or_weight": 2.0,
+            "sales_price": 0.98,
+            "was_voided": false,
+            "camera_product_similar": true,
+            "camera_certainty": 1.0
+        },
+        {
+            "id": 23,
+            "transaction_id": "2835d96f-f2c4-4ec9-befc-dba05873a5d6",
+            "product_id": "3c93cb21-d041-4273-858d-464e7e637bf6",
+            "timestamp": "2023-05-22T20:05:06",
+            "pieces_or_weight": 3.0,
+            "sales_price": 2.97,
+            "was_voided": false,
+            "camera_product_similar": true,
+            "camera_certainty": 1.0
+        },
+        {
+            "id": 24,
+            "transaction_id": "2835d96f-f2c4-4ec9-befc-dba05873a5d6",
+            "product_id": "7beef14e-9e87-4fc5-af75-e23a541cbd0b",
+            "timestamp": "2023-05-22T20:05:14",
+            "pieces_or_weight": 14.0,
+            "sales_price": 13.86,
+            "was_voided": false,
+            "camera_product_similar": true,
+            "camera_certainty": 0.8495267969923376
+        },
+        {
+            "id": 25,
+            "transaction_id": "2835d96f-f2c4-4ec9-befc-dba05873a5d6",
+            "product_id": "ccbc3d95-068b-4015-ac9a-6c33b19436c0",
+            "timestamp": "2023-05-22T20:05:19",
+            "pieces_or_weight": 2.0,
+            "sales_price": 2.38,
+            "was_voided": false,
+            "camera_product_similar": true,
+            "camera_certainty": 0.9141826730537695
+        }
+    ]
+}
