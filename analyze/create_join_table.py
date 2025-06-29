@@ -21,8 +21,6 @@ products = pl.scan_csv(data_dir / "products.csv")
         suffix="__lines",
         how="left",
     )
-    # entferne Transaktionen ohne gültige lines
-    .filter(pl.col("id__lines").is_not_null())
     .join(
         products,
         left_on="product_id",
@@ -37,4 +35,4 @@ products = pl.scan_csv(data_dir / "products.csv")
         suffix="__stores",
         how="left",
     )
-).sink_parquet(data_dir / "transactions_train_3_joined.parquet")
+).sink_parquet(data_dir / "transactions_joined.parquet")

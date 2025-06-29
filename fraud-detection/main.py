@@ -13,52 +13,13 @@ seed = 4
 np.random.seed(seed)
 torch.manual_seed(seed)
 
-keep = [
+features_linear_modell = [
     "payment_medium",
     "has_positive_price_difference",
     "calculated_price_difference",
 ]
 
-keep2 = [
-    "payment_medium",
-    "has_positive_price_difference",
-    "hour",
-    "calculated_price_difference",
-    "n_lines",
-    "has_feedback",
-    "feedback_categorical",
-    "transaction_duration_seconds",
-    "has_voided",
-    "has_camera_detected_wrong_product",
-    "has_camera_detected_wrong_product_high_certainty",
-    "has_snacks",
-]
-
-useless_features = [
-    "max_product_price",
-    "has_positive_price_difference",
-    "has_bakery",
-    "time_to_first_scan",
-    "popularity_max",
-    "has_age_restricted",
-    "cash_desk",
-    "transaction_duration_seconds",
-    "feedback_low",
-    "feedback_middle",
-    "feedback_high",
-    "feedback_top",
-    "store_id",
-    "location",
-    "urbanization",
-    "has_voided",
-    "has_sold_by_weight",
-    "has_limited_time_offers",
-    "has_fruits_vegetables",
-    "has_missing",
-    "has_camera_detected_wrong_product",
-    "day_of_week",
-    "hour_categorical",
-]
+useless_features = fd.data_loader.useless_features
 
 
 def compare():
@@ -97,9 +58,9 @@ def train_regression():
 
 def train_single():
     X, y = fd.data_loader.load_data_np(path, drop_features=useless_features)
-    # clf = fd.models.classifiers.get_xgb_simple()
-    clf = fd.neuralnets.train_nn.getNN(X.shape[1])
-    # clf = fd.neuralnets.train_nn.getvanillaNN(X.shape[1])
+    clf = fd.models.classifiers.get_xgb_simple()
+    # clf = fd.neuralnets.train_nn.getNN(X.shape[1])
+    clf = fd.neuralnets.train_nn.getvanillaNN(X.shape[1])
     # clf = fd.models.classifiers.get_catboost()
     # clf = fd.models.classifiers.get_decsion_tree()
 
@@ -113,7 +74,7 @@ def train_single():
 
 
 def train_linear():
-    X, y = fd.data_loader.load_data_np(path, features=keep)
+    X, y = fd.data_loader.load_data_np(path, features=features_linear_modell)
     # take equal parts of data with target[:, 1] == 0 and target[:, 1] == 1
     clf = fd.models.classifiers.get_logistic_regression()
     fd.model_comparison.train_model(clf, X, y, seed=seed)

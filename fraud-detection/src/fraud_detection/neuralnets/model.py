@@ -203,7 +203,7 @@ def evaluate_classifier(
     damages = np.concatenate(all_damages, axis=0)
     probs = np.concatenate(all_probs, axis=0)
 
-    metrics.propability_histogram(probs, labels, name, epoch, bins=20)
+    metrics.propability_histogram(probs, labels, name, epoch, bins=25)
 
     bew = metrics.bewertung(probs, preds, labels, damages)
     bew["loss"] = loss

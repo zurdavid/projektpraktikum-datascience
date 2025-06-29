@@ -1,0 +1,7 @@
+# uv
+.python-version
+pyproject.toml
+main.py
+uv.lock
+
+*FULL.parquet

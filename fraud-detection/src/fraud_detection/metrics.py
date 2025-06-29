@@ -96,6 +96,7 @@ def propability_histogram(
     name: str,
     epoch: int = -1,
     bins=50,
+    save_to_file: bool = True,
 ):
     # replace plot with seaborn
     plt.figure(figsize=(8, 5))
@@ -119,8 +120,12 @@ def propability_histogram(
     plt.title("Predicted Fraud Probabilities by label: " + name)
     plt.legend()
     epochstr = f"epoch_{epoch}" if epoch != -1 else "final"
-    plt.savefig(f"plots/clf_probability_histogram_{name}_{epochstr}.png")
-    plt.close()
+    if save_to_file:
+        plt.savefig(f"plots/clf_probability_histogram_{name}_{epochstr}.png")
+        plt.close()
+    else:
+        plt.show()
+            
 
 
 def plot_roc_curve(

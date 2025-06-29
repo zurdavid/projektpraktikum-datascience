@@ -1,0 +1,10 @@
+models/
+
+*.db
+
+csv/
+plots/
+data/
+optan/
+
+notebooks/*.joblib

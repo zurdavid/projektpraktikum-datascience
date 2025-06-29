@@ -3,25 +3,7 @@ from pathlib import Path
 import polars as pl
 import polars.selectors as cs
 
-classification_features = [
-    "payment_medium",
-    "hour",
-    "has_positive_price_difference",
-    "has_camera_detected_wrong_product_high_certainty",
-    "has_snacks",
-]
-
-regression_features = [
-    "payment_medium",
-    "hour",
-    "has_voided",
-    "n_voided",
-    "has_camera_detected_wrong_product_high_certainty",
-    "calculated_price_difference",
-    "has_positive_price_difference",
-    "has_snacks",
-]
-
+# Features that are not useful for the model and should be dropped
 useless_features = [
     "max_product_price",
     "has_positive_price_difference",
@@ -48,7 +30,20 @@ useless_features = [
     "hour_categorical",
 ]
 
+
 def load_data_df(path: Path, filter_has_unscanned: bool = True, drop_features=None):
+    """
+    Load the data from a parquet file into a Polars DataFrame.
+
+    Args:
+        path (Path): Path to the parquet file.
+        filter_has_unscanned (bool): If True, filter out rows where 'has_unscanned'
+            is True and drop the 'has_unscanned' column.
+        drop_features (list, optional): List of features to drop from the DataFrame.
+
+    Returns:
+        pl.DataFrame: Polars DataFrame containing the loaded data.
+    """
     drop_features = drop_features or []
     df = pl.read_parquet(path).drop("transaction_id").drop(drop_features)
 
@@ -59,6 +54,21 @@ def load_data_df(path: Path, filter_has_unscanned: bool = True, drop_features=No
 
 
 def load_pandas_data(path: Path, filter_has_unscanned: bool = True, drop_features=None):
+    """
+    Load the data from a parquet file into Pandas DataFrames and two dataframes
+    for features and targets.
+
+    Args:
+        path (Path): Path to the parquet file.
+        filter_has_unscanned (bool): If True, filter out rows where 'has_unscanned'
+            is True and drop the 'has_unscanned' column.
+        drop_features (list, optional): List of features to drop from the DataFrame.
+
+    Returns:
+        tuple: A tuple containing:
+            - X (pd.DataFrame): DataFrame with features.
+            - y (pd.DataFrame): DataFrame with targets ('label' and 'damage').
+    """
     df = load_data_df(path, filter_has_unscanned, drop_features=drop_features)
     df = df.to_pandas()
 
@@ -67,14 +77,63 @@ def load_pandas_data(path: Path, filter_has_unscanned: bool = True, drop_feature
     return X, y
 
 
+def load_data_pl(
+    path: Path, features=None, filter_has_unscanned: bool = True, drop_features=None
+):
+    """
+    Load the data from a parquet file into Polars DataFrames and two dataframes
+    for features and targets. The categorical features are converted to dummy variables.
+
+    Args:
+        path (Path): Path to the parquet file.
+        features (list, optional): List of features to select from the DataFrame.
+        filter_has_unscanned (bool): If True, filter out rows where 'has_unscanned'
+            is True and drop the 'has_unscanned' column.
+        drop_features (list, optional): List of features to drop from the DataFrame.
+
+    Returns:
+        tuple: A tuple containing:
+            - X (pl.DataFrame): DataFrame with features.
+            - y (pl.DataFrame): DataFrame with targets ('label' and 'damage').
+    """
+    df = load_data_df(path, filter_has_unscanned, drop_features=drop_features)
+
+    # targets
+    y = (
+        df.select(["label", "damage"])
+        .to_dummies(cs.categorical())
+        .select(pl.col("label_FRAUD").alias("label"), "damage")
+    )
+
+    X = df.select(features or df.columns).drop("label", "damage", strict=False)
+
+    return X, y
+
+
 def load_data(
     path: Path, features=None, filter_has_unscanned: bool = True, drop_features=None
 ):
+    """
+    Load the data from a parquet file into Polars DataFrames and two dataframes
+    for features and targets. The categorical features are converted to dummy variables.
+
+    Args:
+        path (Path): Path to the parquet file.
+        features (list, optional): List of features to select from the DataFrame.
+        filter_has_unscanned (bool): If True, filter out rows where 'has_unscanned'
+            is True and drop the 'has_unscanned' column.
+        drop_features (list, optional): List of features to drop from the DataFrame.
+
+    Returns:
+        tuple: A tuple containing:
+            - X (pl.DataFrame): DataFrame with features.
+            - y (pl.DataFrame): DataFrame with targets ('label' and 'damage').
+    """
     df = load_data_df(path, filter_has_unscanned, drop_features=drop_features)
     # targets
     y = (
         df.select(["label", "damage"])
-        .to_dummies(cs.categorical(), drop_first=True)
+        .to_dummies(cs.categorical())
         .select(pl.col("label_FRAUD").alias("label"), "damage")
     )
 
@@ -96,6 +155,22 @@ def load_data_np(
     filter_has_unscanned: bool = True,
     drop_features=None,
 ):
+    """
+    Load the data from a parquet file into NumPy arrays for features and targets.
+    Categorical features are converted to dummy variables.
+
+    Args:
+        path (Path): Path to the parquet file.
+        features (list, optional): List of features to select from the DataFrame.
+        filter_has_unscanned (bool): If True, filter out rows where 'has_unscanned'
+            is True and drop the 'has_unscanned' column.
+        drop_features (list, optional): List of features to drop from the DataFrame.
+
+    Returns:
+        tuple: A tuple containing:
+            - X (np.ndarray): NumPy array with features.
+            - y (np.ndarray): NumPy array with targets ('label' and 'damage').
+    """
     X, y = load_data(
         path,
         features=features,
@@ -107,6 +182,19 @@ def load_data_np(
 
 
 def load_data_for_regression(path: Path, filter_has_unscanned: bool = True):
+    """
+    Load the data for regression tasks, specifically for predicting 'damage'.
+
+    Args:
+        path (Path): Path to the parquet file.
+        filter_has_unscanned (bool): If True, filter out rows where 'has_unscanned'
+            is True and drop the 'has_unscanned' column.
+
+    Returns:
+        tuple: A tuple containing:
+            - X (np.ndarray): NumPy array with features.
+            - y (np.ndarray): NumPy array with targets ('damage').
+    """
     # lade nur FRAUD
     df = load_data_df(path, filter_has_unscanned).filter(pl.col("label") == "FRAUD")
 
@@ -116,7 +204,6 @@ def load_data_for_regression(path: Path, filter_has_unscanned: bool = True):
     # features
     X = (
         df.drop("label", "damage")
-        #  .select(regression_features)
         .with_columns(
             pl.col(pl.Boolean).cast(pl.Int8),
         )
