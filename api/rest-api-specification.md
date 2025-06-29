@@ -1,7 +1,14 @@
 # Fraud Detection API Specification
 
-Version: 0.1.1  
+Version: 0.1.2  
 Content-Type: `application/json`
+
+## Changelog
+- **0.1.2**
+    - The following fields in `TransactionHeader` are now optional:
+      - `product_id`
+      - `camera_certainty`
+      - `camera_product_similar`
 
 ## Overview
 
