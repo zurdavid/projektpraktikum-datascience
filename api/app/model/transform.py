@@ -367,6 +367,16 @@ def transform_lines(lines: PL, products: PL, categories: list[str]) -> PL:
                 .any()
                 .cast(pl.Boolean)
                 .alias("has_unscanned"),
+                (
+                    (
+                        pl.col("was_voided")
+                        & (pl.col("sales_price") == 0)
+                        & pl.col("camera_product_similar").not_()
+                    ).cast(pl.Float32)
+                    * pl.col("price")
+                )
+                .sum()
+                .alias("price_unscanned_articles"),
                 pl.col("age_restricted").sum().alias("n_age_restricted"),
                 pl.col("age_restricted")
                 .max()

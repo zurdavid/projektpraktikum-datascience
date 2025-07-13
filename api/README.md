@@ -96,7 +96,7 @@ Run the tests with:
 python -m pytest
 ```
 
-### Run server
+## Run server
 
 The app can be run in development-mode as follows.
 
@@ -110,3 +110,19 @@ In the `scripts` folder, there are some scripts to test the API calls.
 
 - `skeleton.py`
 - `make_api_call.py` should be run from root folder
+
+## Make predictions for entire parquet-files
+
+In the `scripts` folder, there is a script to make predictions for entire parquet files. The script reads the input file, makes predictions, and writes the results to an output file. The script must be run from the root folder of the API project. It expects the input files to be in the `data` folder of the root directory of the Repository.
+
+To run the script, this project must be installed as package. This can be done with the following command:
+
+```bash
+uv pip install -e .
+```
+
+Then the script can be run with the following command:
+
+```bash
+python scripts/make_api_call.py
+```

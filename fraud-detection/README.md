@@ -17,6 +17,12 @@ Es ist auch möglich, die Abhängigkeiten manuell zu installieren. Dazu muss die
 pip install -r requirements.txt
 ```
 
+Um die Notebooks auszuführen, muss das Projekt als package installiert sein.
+
+```bash
+uv pip install -e .
+```
+
 ## Aufbau
 
 `models.md` enthält eine Auflistung der getestenen Modelle mit Hyperparametern.

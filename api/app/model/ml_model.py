@@ -133,3 +133,28 @@ class FraudDetectionModel:
             damage_prediction.item(),
             feature_importances,
         )
+
+    def predict_df(self, X) -> pl.DataFrame:
+        """
+        Predict fraud and damage using the loaded models and return a DataFrame.
+
+        Args:
+            X (pl.DataFrame): Input features for prediction.
+
+        Returns:
+            pl.DataFrame: A DataFrame containing the fraud prediction and damage prediction.
+        """
+        Xt = self.encoder.transform(X)
+        fraud_probability = self.clf.predict_proba(Xt)[:, 1]
+        damage_prediction = self.reg.predict(Xt)
+        prediction = cost_fn(
+            fraud_probability, damage_prediction, self.cost_fp, self.gain_tp
+        )
+        return pl.DataFrame(
+            {
+                "transaction_id": X["transaction_id"],
+                "is_fraud": prediction,
+                "fraud_proba": fraud_probability,
+                "estimated_damage": damage_prediction,
+            }
+        )

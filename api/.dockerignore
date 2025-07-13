@@ -1,16 +1,17 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
+*.egg-info/
 *.py[cod]
 *$py.class
 .pytest_cache
 
 .venv/
-scripts/
 *.md
 Dockerfile
 .git
 .gitignore
 .dockerignore
 
+scripts/
 tests/
-
+notebooks/
